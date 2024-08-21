@@ -43,6 +43,9 @@ const userSchema = new mongoose.Schema(
     idCardPhoto: {
       type: String, // Path to ID card photo
     },
+    passportPhoto: {
+      type: String,
+    },
     isApprovedByManager: {
       type: Boolean,
       default: false,

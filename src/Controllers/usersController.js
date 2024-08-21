@@ -1,16 +1,10 @@
 import bcrypt from "bcrypt";
-import crypto from "crypto";
-import { response } from "express";
 import jwt from "jsonwebtoken";
-import {
-  sendOTPVerification,
-  sendPasswordResetEmail,
-  sendApprovalNotification,
-  sendPasswordToUser,
-} from "../helpers/helper.js";
+import { sendOTPVerification, uploadCloudinary } from "../helpers/helper.js";
 import Users from "../Models/userModel.js";
-import UserOTPVerification from "../Models/userOtpVerificationModel.js";
-import PasswordResetToken from "../Models/forgotPasswordSchema.js";
+
+import otpGenerator from "otp-generator";
+import OTP from "../Models/OTP-model.js";
 
 // User Register
 export const registerUser = async (req, res) => {
@@ -23,9 +17,12 @@ export const registerUser = async (req, res) => {
       assetName,
       department,
       roleInRTMS,
+      contactOtp,
+      emailOtp,
     } = req.body;
 
-    const idCardPhoto = req.file ? req.file.path : null;
+    const idCardPhoto = req.files.idCardPhoto;
+    const passportPhoto = req.files.passportPhoto;
 
     // Checking if all fields are provided
     if (
@@ -35,7 +32,11 @@ export const registerUser = async (req, res) => {
       !employeeID ||
       !assetName ||
       !department ||
-      !roleInRTMS
+      !roleInRTMS ||
+      !contactOtp ||
+      !emailOtp ||
+      !idCardPhoto ||
+      !passportPhoto
     ) {
       return res.status(400).json({
         success: false,
@@ -56,6 +57,35 @@ export const registerUser = async (req, res) => {
       });
     }
 
+    const recentOtp = await OTP.find({ email }).sort({ createdAt: 1 }).limit(1);
+    // valiate otp
+    if (recentOtp.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP Not Found",
+      });
+    } else if (
+      contactOtp !== recentOtp[0].contactOtp ||
+      emailOtp !== recentOtp[0].emailOtp
+    ) {
+      return res
+        .status(404)
+        .json({ success: false, message: "OTP Not Matched!" });
+    }
+
+    const idCardPhotoRes = await uploadCloudinary(
+      idCardPhoto,
+      "rtms",
+      1000,
+      1000
+    );
+    const passportPhotoRes = await uploadCloudinary(
+      passportPhoto,
+      "rtms",
+      1000,
+      1000
+    );
+
     // Creating new user
     const newUser = await Users.create({
       username,
@@ -65,25 +95,16 @@ export const registerUser = async (req, res) => {
       assetName,
       department,
       roleInRTMS,
-      idCardPhoto,
+      idCardPhoto: idCardPhotoRes.secure_url,
+      passportPhoto: passportPhoto.secure_url,
     });
 
-    // Send OTP verification
-    await sendOTPVerification(
-      {
-        _id: newUser._id,
-        email: newUser.email,
-        mobile: newUser.contactNumber,
-      },
-      res
-    );
-
-    // Send approval notifications
-    await sendApprovalNotification(newUser);
+    console.log(idCardPhotoRes,passportPhotoRes,"upload photo")
 
     res.status(201).json({
       success: true,
-      message: "User is Registered and OTP sent for verification!",
+      message:
+        "User is Registered and Now Wait For Approval by Manager And Owner!",
       data: {
         _id: newUser._id,
         username: newUser.username,
@@ -94,6 +115,7 @@ export const registerUser = async (req, res) => {
         department: newUser.department,
         roleInRTMS: newUser.roleInRTMS,
         idCardPhoto: newUser.idCardPhoto,
+        passportPhoto: newUser.passportPhoto,
       },
     });
   } catch (error) {
@@ -151,160 +173,238 @@ export const loginUser = async (req, res) => {
   }
 };
 
+//sent otp api function
+export const sendOTPRegister = async (req, res) => {
+  try {
+    const { contactNumber, email } = req.body;
+    if (!email || !contactNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields required!",
+      });
+    }
+
+    const checkUserPresent = await Users.findOne({ email });
+
+    if (checkUserPresent) {
+      return res.status(400).json({
+        success: false,
+        message: "User already present!",
+      });
+    }
+
+    let emailOtp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+    });
+
+    let emailResult = await OTP.findOne({ emailOtp });
+
+    while (emailResult) {
+      emailOtp = otpGenerator.generate(6, {
+        upperCaseAlphabets: false,
+        specialChars: false,
+        lowerCaseAlphabets: false,
+      });
+
+      emailResult = await OTP.findOne({ emailOtp });
+    }
+
+    let contactOtp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+    });
+
+    let contactResult = await OTP.findOne({ contactOtp });
+
+    while (contactResult) {
+      contactOtp = otpGenerator.generate(6, {
+        upperCaseAlphabets: false,
+        specialChars: false,
+        lowerCaseAlphabets: false,
+      });
+
+      contactResult = await OTP.findOne({ contactOtp });
+    }
+
+    const newOTP = await OTP.create({
+      emailOtp,
+      contactOtp,
+      email,
+      contactNumber,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP SEND SUCCESSFULLY! CHECK YOUR EMAIL",
+      newOTP,
+    });
+  } catch (error) {
+    console.log("Error in Sending OTP");
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Error in Sending OTP!",
+    });
+  }
+};
+
 //send otp verification email
-export const verifyOTP = async (req, res) => {
-  try {
-    const { userId, otp } = req.body;
+// export const verifyOTP = async (req, res) => {
+//   try {
+//     const { userId, otp } = req.body;
 
-    if (!userId || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
-    }
+//     if (!userId || !otp) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All fields are required",
+//       });
+//     }
 
-    const userOTPVerification = await UserOTPVerification.findOne({
-      userId,
-    });
+//     const userOTPVerification = await UserOTPVerification.findOne({
+//       userId,
+//     });
 
-    if (!userOTPVerification) {
-      return res.status(400).json({
-        success: false,
-        message: "OTP not found, please request a new OTP",
-      });
-    }
+//     if (!userOTPVerification) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "OTP not found, please request a new OTP",
+//       });
+//     }
 
-    const isOTPValid = await bcrypt.compare(otp, userOTPVerification.otp);
+//     const isOTPValid = await bcrypt.compare(otp, userOTPVerification.otp);
 
-    if (!isOTPValid) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OTP",
-      });
-    }
+//     if (!isOTPValid) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid OTP",
+//       });
+//     }
 
-    // OTP is valid, complete the login or signup process
-    await UserOTPVerification.deleteMany({ userId });
+//     // OTP is valid, complete the login or signup process
+//     await UserOTPVerification.deleteMany({ userId });
 
-    res.status(200).json({
-      success: true,
-      message: "OTP verified successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to verify OTP",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "OTP verified successfully",
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Failed to verify OTP",
+//     });
+//   }
+// };
 
-//forgot password api
-export const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
+// //forgot password api
+// export const forgotPassword = async (req, res) => {
+//   try {
+//     const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required",
-      });
-    }
+//     if (!email) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email is required",
+//       });
+//     }
 
-    const user = await Users.findOne({ email });
+//     const user = await Users.findOne({ email });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
 
-    // Generate a reset token
-    const token = crypto.randomBytes(32).toString("hex");
+//     // Generate a reset token
+//     const token = crypto.randomBytes(32).toString("hex");
 
-    const resetToken = new PasswordResetToken({
-      userId: user._id,
-      token,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 3600000, // 1 hour
-    });
+//     const resetToken = new PasswordResetToken({
+//       userId: user._id,
+//       token,
+//       createdAt: Date.now(),
+//       expiresAt: Date.now() + 3600000, // 1 hour
+//     });
 
-    await resetToken.save();
+//     await resetToken.save();
 
-    await sendPasswordResetEmail(email, token);
+//     await sendPasswordResetEmail(email, token);
 
-    res.status(200).json({
-      success: true,
-      message: "Password reset email sent",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to send password reset email",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "Password reset email sent",
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Failed to send password reset email",
+//     });
+//   }
+// };
 
-//Reset password api
-export const resetPassword = async (req, res) => {
-  try {
-    const { token, newPassword, confirmPassword } = req.body;
+// //Reset password api
+// export const resetPassword = async (req, res) => {
+//   try {
+//     const { token, newPassword, confirmPassword } = req.body;
 
-    if (!token || !newPassword || !confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
-    }
+//     if (!token || !newPassword || !confirmPassword) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All fields are required",
+//       });
+//     }
 
-    if (newPassword !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Passwords do not match",
-      });
-    }
+//     if (newPassword !== confirmPassword) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Passwords do not match",
+//       });
+//     }
 
-    const resetToken = await PasswordResetToken.findOne({
-      token,
-      expiresAt: { $gt: Date.now() },
-    });
+//     const resetToken = await PasswordResetToken.findOne({
+//       token,
+//       expiresAt: { $gt: Date.now() },
+//     });
 
-    if (!resetToken) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired token",
-      });
-    }
+//     if (!resetToken) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid or expired token",
+//       });
+//     }
 
-    const user = await Users.findById(resetToken.userId);
+//     const user = await Users.findById(resetToken.userId);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+//     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    user.password = hashedPassword;
-    await user.save();
+//     user.password = hashedPassword;
+//     await user.save();
 
-    await PasswordResetToken.deleteMany({ userId: user._id });
+//     await PasswordResetToken.deleteMany({ userId: user._id });
 
-    res.status(200).json({
-      success: true,
-      message: "Password reset successful",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to reset password",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "Password reset successful",
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Failed to reset password",
+//     });
+//   }
+// };
 
-// Approve user by manager
+// // Approve user by manager
 export const approveUserByManager = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -350,48 +450,48 @@ export const approveUserByManager = async (req, res) => {
   }
 };
 
-// Approve user by owner
-export const approveUserByOwner = async (req, res) => {
-  try {
-    const { userId } = req.body;
+// // Approve user by owner
+// export const approveUserByOwner = async (req, res) => {
+//   try {
+//     const { userId } = req.body;
 
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID is required",
-      });
-    }
+//     if (!userId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "User ID is required",
+//       });
+//     }
 
-    const user = await Users.findById(userId);
+//     const user = await Users.findById(userId);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
 
-    // Set user's approval status
-    user.isApprovedByOwner = true;
-    await user.save();
+//     // Set user's approval status
+//     user.isApprovedByOwner = true;
+//     await user.save();
 
-    // Check if user is also approved by manager
-    if (user.isApprovedByManager) {
-      await sendPasswordToUser(user);
-      return res.status(200).json({
-        success: true,
-        message: "User approved by owner and password sent",
-      });
-    }
+//     // Check if user is also approved by manager
+//     if (user.isApprovedByManager) {
+//       await sendPasswordToUser(user);
+//       return res.status(200).json({
+//         success: true,
+//         message: "User approved by owner and password sent",
+//       });
+//     }
 
-    res.status(200).json({
-      success: true,
-      message: "User approved by owner",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to approve user by owner",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "User approved by owner",
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Failed to approve user by owner",
+//     });
+//   }
+// };
