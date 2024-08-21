@@ -46,33 +46,37 @@ export const registerUser = async (req, res) => {
 
     // Checking if user is already registered
     const existingUser = await Users.findOne({
-      email,
-      employeeID,
-      contactNumber,
+      $or: [{ email }, { employeeID }, { contactNumber }],
     });
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "User Already Present!",
+        message: "User already registered with the provided details",
       });
     }
 
-    const recentOtp = await OTP.find({ email }).sort({ createdAt: 1 }).limit(1);
-    // valiate otp
-    if (recentOtp.length === 0) {
+    // Fetching the most recent OTP
+    const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
+
+    if (!recentOtp) {
       return res.status(400).json({
         success: false,
-        message: "OTP Not Found",
+        message: "OTP not found",
       });
-    } else if (
-      contactOtp !== recentOtp[0].contactOtp ||
-      emailOtp !== recentOtp[0].emailOtp
-    ) {
-      return res
-        .status(404)
-        .json({ success: false, message: "OTP Not Matched!" });
     }
 
+    // Validating OTPs
+    if (
+      contactOtp !== recentOtp.contactOtp ||
+      emailOtp !== recentOtp.emailOtp
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Provided OTPs do not match the most recent OTPs",
+      });
+    }
+
+    // Uploading photos to Cloudinary
     const idCardPhotoRes = await uploadCloudinary(
       idCardPhoto,
       "rtms",
@@ -96,15 +100,13 @@ export const registerUser = async (req, res) => {
       department,
       roleInRTMS,
       idCardPhoto: idCardPhotoRes.secure_url,
-      passportPhoto: passportPhoto.secure_url,
+      passportPhoto: passportPhotoRes.secure_url,
     });
-
-    console.log(idCardPhotoRes,passportPhotoRes,"upload photo")
 
     res.status(201).json({
       success: true,
       message:
-        "User is Registered and Now Wait For Approval by Manager And Owner!",
+        "User registered successfully. Waiting for approval by Manager and Owner.",
       data: {
         _id: newUser._id,
         username: newUser.username,
@@ -121,10 +123,11 @@ export const registerUser = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to Signup",
+      message: error.message || "Failed to register user",
     });
   }
 };
+
 
 // User login
 export const loginUser = async (req, res) => {
@@ -405,50 +408,50 @@ export const sendOTPRegister = async (req, res) => {
 // };
 
 // // Approve user by manager
-export const approveUserByManager = async (req, res) => {
-  try {
-    const { userId } = req.body;
+// export const approveUserByManager = async (req, res) => {
+//   try {
+//     const { userId } = req.body;
 
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID is required",
-      });
-    }
+//     if (!userId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "User ID is required",
+//       });
+//     }
 
-    const user = await Users.findById(userId);
+//     const user = await Users.findById(userId);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
 
-    // Set user's approval status
-    user.isApprovedByManager = true;
-    await user.save();
+//     // Set user's approval status
+//     user.isApprovedByManager = true;
+//     await user.save();
 
-    // Check if user is also approved by owner
-    if (user.isApprovedByOwner) {
-      await sendPasswordToUser(user);
-      return res.status(200).json({
-        success: true,
-        message: "User approved by manager and password sent",
-      });
-    }
+//     // Check if user is also approved by owner
+//     if (user.isApprovedByOwner) {
+//       await sendPasswordToUser(user);
+//       return res.status(200).json({
+//         success: true,
+//         message: "User approved by manager and password sent",
+//       });
+//     }
 
-    res.status(200).json({
-      success: true,
-      message: "User approved by manager",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to approve user by manager",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "User approved by manager",
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Failed to approve user by manager",
+//     });
+//   }
+// };
 
 // // Approve user by owner
 // export const approveUserByOwner = async (req, res) => {
