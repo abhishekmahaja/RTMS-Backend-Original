@@ -83,6 +83,8 @@ export const registerUser = async (req, res) => {
       1000,
       1000
     );
+
+    console.log("dddd", idCardPhotoRes);
     const passportPhotoRes = await uploadCloudinary(
       passportPhoto,
       "rtms",
@@ -90,35 +92,37 @@ export const registerUser = async (req, res) => {
       1000
     );
 
+    console.log("ddddsss", passportPhotoRes);
+
     // Creating new user
-    const newUser = await Users.create({
-      username,
-      email,
-      contactNumber,
-      employeeID,
-      assetName,
-      department,
-      roleInRTMS,
-      idCardPhoto: idCardPhotoRes.secure_url,
-      passportPhoto: passportPhotoRes.secure_url,
-    });
+    // const newUser = await Users.create({
+    //   username,
+    //   email,
+    //   contactNumber,
+    //   employeeID,
+    //   assetName,
+    //   department,
+    //   roleInRTMS,
+    //   idCardPhoto: idCardPhotoRes.secure_url,
+    //   passportPhoto: passportPhotoRes.secure_url,
+    // });
 
     res.status(201).json({
       success: true,
       message:
         "User registered successfully. Waiting for approval by Manager and Owner.",
-      data: {
-        _id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-        contactNumber: newUser.contactNumber,
-        employeeID: newUser.employeeID,
-        assetName: newUser.assetName,
-        department: newUser.department,
-        roleInRTMS: newUser.roleInRTMS,
-        idCardPhoto: newUser.idCardPhoto,
-        passportPhoto: newUser.passportPhoto,
-      },
+      // data: {
+      //   _id: newUser._id,
+      //   username: newUser.username,
+      //   email: newUser.email,
+      //   contactNumber: newUser.contactNumber,
+      //   employeeID: newUser.employeeID,
+      //   assetName: newUser.assetName,
+      //   department: newUser.department,
+      //   roleInRTMS: newUser.roleInRTMS,
+      //   idCardPhoto: newUser.idCardPhoto,
+      //   passportPhoto: newUser.passportPhoto,
+      // },
     });
   } catch (error) {
     return res.status(500).json({
@@ -127,7 +131,6 @@ export const registerUser = async (req, res) => {
     });
   }
 };
-
 
 // User login
 export const loginUser = async (req, res) => {

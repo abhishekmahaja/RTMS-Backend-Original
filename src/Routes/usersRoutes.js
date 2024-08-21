@@ -17,7 +17,7 @@ const router = express.Router();
 // User registration with file upload
 router.post(
   "/register",
-  upload.single("idCardPhoto,passportPhoto"),
+  // upload.single("idCardPhoto,passportPhoto"),
   registerUser
 );
 // // User login
@@ -33,6 +33,6 @@ router.post(
 // // Approve user by owner
 // router.post("/approve-by-owner", approveUserByOwner);
 
-router.post("/send-otp-register", sendOTPRegister)
+router.post("/send-otp-register", sendOTPRegister);
 
 export default router;

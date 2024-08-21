@@ -4,12 +4,20 @@ import cors from "cors";
 import userRoutes from "./src/Routes/usersRoutes.js";
 import Mongodb from "./src/Database/connectToDatabase.js";
 import connectCloudinary from "./src/Config/cloudinary.js";
+import fileUpload from "express-fileupload";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 connectCloudinary();
+
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp",
+  })
+);
 
 app.use(cors());
 app.use(express.json());
