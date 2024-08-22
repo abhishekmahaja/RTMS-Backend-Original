@@ -47,7 +47,7 @@ export const sendOTPVerification = async ({
       to: mobile,
     };
 
-    await twilioClient.messages.create(smsOptions);
+    // await twilioClient.messages.create(smsOptions);
   } catch (error) {
     console.log("OTP Not Send");
   }
@@ -165,7 +165,28 @@ export const sendPasswordToUser = async (user) => {
     await transporter.sendMail(mailOptions);
 
     // Send SMS
-    await twilioClient.messages.create(smsOptions);
+    // await twilioClient.messages.create(smsOptions);
+  } catch (error) {
+    console.error("Error sending password:", error);
+    throw new Error("Failed to send password");
+  }
+};
+
+//approved owner mail to manager and user
+export const sendApprovedNotifactionToManager = async (employeeID) => {
+  // Email options
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: user.email,
+    subject: "Your Account Password",
+    html: `<p>This Employee id approved my Owner ${employeeID}`,
+  };
+
+  try {
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    // Send SMS
   } catch (error) {
     console.error("Error sending password:", error);
     throw new Error("Failed to send password");
@@ -188,16 +209,7 @@ export const uploadCloudinary = async (file, folder, height, quality) => {
   return await cloudinary.uploader.upload(file.tempFilePath, options);
 };
 
-// Send approval or reject notification message
-// export const sendApprovalNotification = async (user) => {
-//   try {
-//     const ownerEmail = "karan4007ch@gmail.com";
-//     const managerEmail = "karan4007ch@gmail.com";
-
-// Send password to user after successful approval
+// to Generated password
 const generatePassword = () => {
-  // Generate a random password
-  return Math.random().toString(36).slice(-8); // 8-character random password
+  return Math.random().toString(36).slice(-8); 
 };
-
-

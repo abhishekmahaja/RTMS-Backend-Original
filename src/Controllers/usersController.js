@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
+  sendApprovedNotifactionToManager,
   sendNotificationToManager,
   sendNotificationToOwner,
   sendPasswordToUser,
@@ -159,6 +160,7 @@ export const registerUser = async (req, res) => {
         message: "Provided OTPs do not match the most recent OTPs",
       });
     }
+    recentOtp.deleteOne();
 
     // Uploading photos to Cloudinary
     const idCardPhotoRes = await uploadCloudinary(
@@ -244,6 +246,13 @@ export const approveUserByManager = async (req, res) => {
       });
     }
 
+    if (user.isApprovedByManager) {
+      return res.json({
+        success: false,
+        message : "User already approved"
+      })
+    }
+
     // Set user's approval status
     user.isApprovedByManager = true;
     await user.save();
@@ -289,6 +298,13 @@ export const approveUserByOwner = async (req, res) => {
       });
     }
 
+    if (user.isApprovedByOwner) {
+      return res.json({
+        success: false,
+        message : "User already aaproved"
+      })
+    }
+
     // Set user's approval status
     user.isApprovedByOwner = true;
     await user.save();
@@ -296,6 +312,7 @@ export const approveUserByOwner = async (req, res) => {
     // Check if user is also approved by owner
     if (user.isApprovedByOwner) {
       await sendPasswordToUser(user);
+      await sendApprovedNotifactionToManager(user.employeeID);
       return res.status(200).json({
         success: true,
         message: "User approved by Owner and Manager and password sent",
@@ -408,8 +425,6 @@ export const loginUser = async (req, res) => {
       createdAt: -1,
     });
 
-    // console.log("gxshg", recentOtp);
-
     if (!recentOtp) {
       return res.status(400).json({
         success: false,
@@ -424,6 +439,7 @@ export const loginUser = async (req, res) => {
         message: "Provided OTPs do not match the most recent OTPs",
       });
     }
+    recentOtp.deleteOne();
 
     return res.json({
       success: true,
@@ -554,6 +570,7 @@ export const resetPassword = async (req, res) => {
         message: "Provided OTPs do not match the most recent OTPs",
       });
     }
+    recentOtp.deleteOne();
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
