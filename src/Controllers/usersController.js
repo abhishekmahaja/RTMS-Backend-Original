@@ -249,8 +249,8 @@ export const approveUserByManager = async (req, res) => {
     if (user.isApprovedByManager) {
       return res.json({
         success: false,
-        message : "User already approved"
-      })
+        message: "User already approved",
+      });
     }
 
     // Set user's approval status
@@ -301,8 +301,8 @@ export const approveUserByOwner = async (req, res) => {
     if (user.isApprovedByOwner) {
       return res.json({
         success: false,
-        message : "User already aaproved"
-      })
+        message: "User already aaproved",
+      });
     }
 
     // Set user's approval status
@@ -327,6 +327,56 @@ export const approveUserByOwner = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message || "Failed to approve user by Owner",
+    });
+  }
+};
+
+// Status check the registration
+export const RegistrationStatusUser = async (req, res) => {
+  try {
+    const { employeeID } = req.body;
+
+    // Find the user by employeeID
+    const user = await Users.findOne({ employeeID });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Build the status message based on approval fields
+    let statusMessage = "Registration Status: ";
+    if (user.managerApproval && user.ownerApproval) {
+      statusMessage +=
+        "Registration Successful. Password sent to your email. Please login.";
+    } else if (user.managerApproval) {
+      statusMessage += "Approved by Manager. Waiting for Owner approval.";
+    } else {
+      statusMessage += "Pending Manager approval.";
+    }
+
+    // Return the status
+    res.status(200).json({
+      success: true,
+      message: statusMessage,
+      data: {
+        employeeID: user.employeeID,
+        username: user.username,
+        email: user.email,
+        contactNumber: user.contactNumber,
+        assetName: user.assetName,
+        department: user.department,
+        roleInRTMS: user.roleInRTMS,
+        idCardPhoto: user.idCardPhoto,
+        passportPhoto: user.passportPhoto,
+        status: statusMessage,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to retrieve user status",
     });
   }
 };
@@ -510,7 +560,7 @@ export const forgotPassword = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Password reset email sent",
-      newOTP
+      newOTP,
     });
   } catch (error) {
     res.status(500).json({
@@ -561,10 +611,7 @@ export const resetPassword = async (req, res) => {
     }
 
     // Validating OTPs
-    if (
-      otp !== recentOtp.contactOtp ||
-      otp !== recentOtp.emailOtp
-    ) {
+    if (otp !== recentOtp.contactOtp || otp !== recentOtp.emailOtp) {
       return res.status(400).json({
         success: false,
         message: "Provided OTPs do not match the most recent OTPs",
