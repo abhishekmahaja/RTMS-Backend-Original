@@ -1,185 +1,16 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { sendOTPVerification, uploadCloudinary } from "../helpers/helper.js";
+import {
+  sendNotificationToManager,
+  sendNotificationToOwner,
+  sendPasswordToUser,
+  uploadCloudinary,
+} from "../helpers/helper.js";
 import Users from "../Models/userModel.js";
-
 import otpGenerator from "otp-generator";
 import OTP from "../Models/OTP-model.js";
 
-// User Register
-export const registerUser = async (req, res) => {
-  try {
-    const {
-      username,
-      email,
-      contactNumber,
-      employeeID,
-      assetName,
-      department,
-      roleInRTMS,
-      contactOtp,
-      emailOtp,
-    } = req.body;
-
-    const idCardPhoto = req.files.idCardPhoto;
-    const passportPhoto = req.files.passportPhoto;
-
-    // Checking if all fields are provided
-    if (
-      !username ||
-      !email ||
-      !contactNumber ||
-      !employeeID ||
-      !assetName ||
-      !department ||
-      !roleInRTMS ||
-      !contactOtp ||
-      !emailOtp ||
-      !idCardPhoto ||
-      !passportPhoto
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
-    }
-
-    // Checking if user is already registered
-    const existingUser = await Users.findOne({
-      $or: [{ email }, { employeeID }, { contactNumber }],
-    });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "User already registered with the provided details",
-      });
-    }
-
-    // Fetching the most recent OTP
-    const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
-
-    if (!recentOtp) {
-      return res.status(400).json({
-        success: false,
-        message: "OTP not found",
-      });
-    }
-
-    // Validating OTPs
-    if (
-      contactOtp !== recentOtp.contactOtp ||
-      emailOtp !== recentOtp.emailOtp
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Provided OTPs do not match the most recent OTPs",
-      });
-    }
-
-    // Uploading photos to Cloudinary
-    const idCardPhotoRes = await uploadCloudinary(
-      idCardPhoto,
-      "rtms",
-      1000,
-      1000
-    );
-
-    console.log("dddd", idCardPhotoRes);
-    const passportPhotoRes = await uploadCloudinary(
-      passportPhoto,
-      "rtms",
-      1000,
-      1000
-    );
-
-    console.log("ddddsss", passportPhotoRes);
-
-    // Creating new user
-    // const newUser = await Users.create({
-    //   username,
-    //   email,
-    //   contactNumber,
-    //   employeeID,
-    //   assetName,
-    //   department,
-    //   roleInRTMS,
-    //   idCardPhoto: idCardPhotoRes.secure_url,
-    //   passportPhoto: passportPhotoRes.secure_url,
-    // });
-
-    res.status(201).json({
-      success: true,
-      message:
-        "User registered successfully. Waiting for approval by Manager and Owner.",
-      // data: {
-      //   _id: newUser._id,
-      //   username: newUser.username,
-      //   email: newUser.email,
-      //   contactNumber: newUser.contactNumber,
-      //   employeeID: newUser.employeeID,
-      //   assetName: newUser.assetName,
-      //   department: newUser.department,
-      //   roleInRTMS: newUser.roleInRTMS,
-      //   idCardPhoto: newUser.idCardPhoto,
-      //   passportPhoto: newUser.passportPhoto,
-      // },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to register user",
-    });
-  }
-};
-
-// User login
-export const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields required!",
-      });
-    }
-
-    const user = await Users.findOne({ email });
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "User is not registered. Please Signup first!",
-      });
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-
-    if (!passwordMatch) {
-      return res.status(404).json({
-        success: false,
-        message: "Password doesn't match. Please enter the correct password",
-      });
-    }
-
-    // Send OTP for verification
-    await sendOTPVerification(
-      { _id: user._id, email: user.email, mobile: user.contactNumber },
-      res
-    );
-
-    // Now wait for OTP verification step (implement verification endpoint)
-  } catch (error) {
-    console.log("Error in Login Controller");
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to login!",
-    });
-  }
-};
-
-//sent otp api function
+//sent otp api for register function
 export const sendOTPRegister = async (req, res) => {
   try {
     const { contactNumber, email } = req.body;
@@ -257,247 +88,486 @@ export const sendOTPRegister = async (req, res) => {
   }
 };
 
-//send otp verification email
-// export const verifyOTP = async (req, res) => {
-//   try {
-//     const { userId, otp } = req.body;
+// User Register
+export const registerUser = async (req, res) => {
+  try {
+    const {
+      username,
+      email,
+      contactNumber,
+      employeeID,
+      assetName,
+      department,
+      roleInRTMS,
+      contactOtp,
+      emailOtp,
+    } = req.body;
 
-//     if (!userId || !otp) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "All fields are required",
-//       });
-//     }
+    const idCardPhoto = req.files.idCardPhoto;
+    const passportPhoto = req.files.passportPhoto;
 
-//     const userOTPVerification = await UserOTPVerification.findOne({
-//       userId,
-//     });
+    // Checking if all fields are provided
+    if (
+      !username ||
+      !email ||
+      !contactNumber ||
+      !employeeID ||
+      !assetName ||
+      !department ||
+      !roleInRTMS ||
+      !contactOtp ||
+      !emailOtp ||
+      !idCardPhoto ||
+      !passportPhoto
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
 
-//     if (!userOTPVerification) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "OTP not found, please request a new OTP",
-//       });
-//     }
+    // Checking if user is already registered
+    const existingUser = await Users.findOne({
+      $or: [{ email }, { employeeID }, { contactNumber }],
+    });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already registered with the provided details",
+      });
+    }
 
-//     const isOTPValid = await bcrypt.compare(otp, userOTPVerification.otp);
+    // Fetching the most recent OTP
+    const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
 
-//     if (!isOTPValid) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid OTP",
-//       });
-//     }
+    // console.log("gxshg", recentOtp);
 
-//     // OTP is valid, complete the login or signup process
-//     await UserOTPVerification.deleteMany({ userId });
+    if (!recentOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP not found",
+      });
+    }
 
-//     res.status(200).json({
-//       success: true,
-//       message: "OTP verified successfully",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message || "Failed to verify OTP",
-//     });
-//   }
-// };
+    // Validating OTPs
+    if (
+      contactOtp !== recentOtp.contactOtp ||
+      emailOtp !== recentOtp.emailOtp
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Provided OTPs do not match the most recent OTPs",
+      });
+    }
 
-// //forgot password api
-// export const forgotPassword = async (req, res) => {
-//   try {
-//     const { email } = req.body;
+    // Uploading photos to Cloudinary
+    const idCardPhotoRes = await uploadCloudinary(
+      idCardPhoto,
+      "rtms",
+      1000,
+      1000
+    );
 
-//     if (!email) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Email is required",
-//       });
-//     }
+    const passportPhotoRes = await uploadCloudinary(
+      passportPhoto,
+      "rtms",
+      1000,
+      1000
+    );
 
-//     const user = await Users.findOne({ email });
+    // Creating new user
+    const newUser = await Users.create({
+      username,
+      email,
+      contactNumber,
+      employeeID,
+      assetName,
+      department,
+      roleInRTMS,
+      idCardPhoto: idCardPhotoRes.secure_url,
+      passportPhoto: passportPhotoRes.secure_url,
+    });
 
-//     if (!user) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
+    //send notification to manager for approval
+    await sendNotificationToManager(
+      newUser.username,
+      newUser.employeeID,
+      newUser.contactNumber,
+      newUser.email,
+      newUser.department,
+      "abhishekkumarmahajan96250@gmail.com"
+    );
 
-//     // Generate a reset token
-//     const token = crypto.randomBytes(32).toString("hex");
+    res.status(201).json({
+      success: true,
+      message:
+        "User registered successfully. Waiting for approval by Manager and Owner.",
+      data: {
+        _id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+        contactNumber: newUser.contactNumber,
+        employeeID: newUser.employeeID,
+        assetName: newUser.assetName,
+        department: newUser.department,
+        roleInRTMS: newUser.roleInRTMS,
+        idCardPhoto: newUser.idCardPhoto,
+        passportPhoto: newUser.passportPhoto,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to register user",
+    });
+  }
+};
 
-//     const resetToken = new PasswordResetToken({
-//       userId: user._id,
-//       token,
-//       createdAt: Date.now(),
-//       expiresAt: Date.now() + 3600000, // 1 hour
-//     });
+// Approve user by manager
+export const approveUserByManager = async (req, res) => {
+  try {
+    const { employeeID } = req.body;
 
-//     await resetToken.save();
+    if (!employeeID) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+    const user = await Users.findOne({ employeeID: employeeID });
 
-//     await sendPasswordResetEmail(email, token);
+    // return res.json({user})
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Password reset email sent",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message || "Failed to send password reset email",
-//     });
-//   }
-// };
+    // Set user's approval status
+    user.isApprovedByManager = true;
+    await user.save();
 
-// //Reset password api
-// export const resetPassword = async (req, res) => {
-//   try {
-//     const { token, newPassword, confirmPassword } = req.body;
+    //send notifications to owner for approval
+    await sendNotificationToOwner(
+      user.username,
+      user.employeeID,
+      user.contactNumber,
+      user.email,
+      user.department,
+      "abhishekmahajan8285@gmail.com"
+    );
 
-//     if (!token || !newPassword || !confirmPassword) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "All fields are required",
-//       });
-//     }
+    res.status(200).json({
+      success: true,
+      message: "User approved by manager",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to approve user by manager",
+    });
+  }
+};
 
-//     if (newPassword !== confirmPassword) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Passwords do not match",
-//       });
-//     }
+// Approve user by owner
+export const approveUserByOwner = async (req, res) => {
+  try {
+    const { employeeID } = req.body;
 
-//     const resetToken = await PasswordResetToken.findOne({
-//       token,
-//       expiresAt: { $gt: Date.now() },
-//     });
+    if (!employeeID) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+    const user = await Users.findOne({ employeeID: employeeID });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
-//     if (!resetToken) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid or expired token",
-//       });
-//     }
+    // Set user's approval status
+    user.isApprovedByOwner = true;
+    await user.save();
 
-//     const user = await Users.findById(resetToken.userId);
+    // Check if user is also approved by owner
+    if (user.isApprovedByOwner) {
+      await sendPasswordToUser(user);
+      return res.status(200).json({
+        success: true,
+        message: "User approved by Owner and Manager and password sent",
+      });
+    }
 
-//     if (!user) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
+    res.status(200).json({
+      success: true,
+      message: "User approved by Owner",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to approve user by Owner",
+    });
+  }
+};
 
-//     const hashedPassword = await bcrypt.hash(newPassword, 10);
+//sent otp api for login function
+export const sendOTPLogin = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields required!",
+      });
+    }
 
-//     user.password = hashedPassword;
-//     await user.save();
+    const user = await Users.findOne({ username });
 
-//     await PasswordResetToken.deleteMany({ userId: user._id });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not present!",
+      });
+    }
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Password reset successful",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message || "Failed to reset password",
-//     });
-//   }
-// };
+    const passwordMatch = await bcrypt.compare(password, user.password);
 
-// // Approve user by manager
-// export const approveUserByManager = async (req, res) => {
-//   try {
-//     const { userId } = req.body;
+    if (!passwordMatch) {
+      return res.status(404).json({
+        success: false,
+        message: "Password doesn't match. Please enter the correct password",
+      });
+    }
 
-//     if (!userId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "User ID is required",
-//       });
-//     }
+    let emailOtp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+    });
 
-//     const user = await Users.findById(userId);
+    let emailResult = await OTP.findOne({ emailOtp });
 
-//     if (!user) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
+    while (emailResult) {
+      emailOtp = otpGenerator.generate(6, {
+        upperCaseAlphabets: false,
+        specialChars: false,
+        lowerCaseAlphabets: false,
+      });
 
-//     // Set user's approval status
-//     user.isApprovedByManager = true;
-//     await user.save();
+      emailResult = await OTP.findOne({ emailOtp });
+    }
 
-//     // Check if user is also approved by owner
-//     if (user.isApprovedByOwner) {
-//       await sendPasswordToUser(user);
-//       return res.status(200).json({
-//         success: true,
-//         message: "User approved by manager and password sent",
-//       });
-//     }
+    const newOTP = await OTP.create({
+      emailOtp,
+      contactOtp: emailOtp,
+      email: user.email,
+      contactNumber: user.contactNumber,
+    });
 
-//     res.status(200).json({
-//       success: true,
-//       message: "User approved by manager",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message || "Failed to approve user by manager",
-//     });
-//   }
-// };
+    return res.status(200).json({
+      success: true,
+      message: "OTP SEND SUCCESSFULLY! CHECK YOUR EMAIL",
+      newOTP,
+    });
+  } catch (error) {
+    console.log("Error in Sending OTP");
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Error in Sending OTP!",
+    });
+  }
+};
 
-// // Approve user by owner
-// export const approveUserByOwner = async (req, res) => {
-//   try {
-//     const { userId } = req.body;
+// User login
+export const loginUser = async (req, res) => {
+  try {
+    const { username, password, otp } = req.body;
 
-//     if (!userId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "User ID is required",
-//       });
-//     }
+    if (!username || !password || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields required!",
+      });
+    }
 
-//     const user = await Users.findById(userId);
+    const user = await Users.findOne({ username });
 
-//     if (!user) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User is not registered. Please Signup first!",
+      });
+    }
 
-//     // Set user's approval status
-//     user.isApprovedByOwner = true;
-//     await user.save();
+    const recentOtp = await OTP.findOne({ email: user.email }).sort({
+      createdAt: -1,
+    });
 
-//     // Check if user is also approved by manager
-//     if (user.isApprovedByManager) {
-//       await sendPasswordToUser(user);
-//       return res.status(200).json({
-//         success: true,
-//         message: "User approved by owner and password sent",
-//       });
-//     }
+    // console.log("gxshg", recentOtp);
 
-//     res.status(200).json({
-//       success: true,
-//       message: "User approved by owner",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message || "Failed to approve user by owner",
-//     });
-//   }
-// };
+    if (!recentOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP not found",
+      });
+    }
+
+    // Validating OTPs
+    if (otp !== recentOtp.contactOtp || otp !== recentOtp.emailOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Provided OTPs do not match the most recent OTPs",
+      });
+    }
+
+    return res.json({
+      success: true,
+      user,
+      message: "User logged in successfully",
+    });
+
+    // Now wait for OTP verification step (implement verification endpoint)
+  } catch (error) {
+    console.log("Error in Login Controller");
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to login!",
+    });
+  }
+};
+
+//forgot password api
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await Users.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    //sent otp
+    let emailOtp = otpGenerator.generate(6, {
+      upperCaseAlphabets: true,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+    });
+
+    let emailResult = await OTP.findOne({ emailOtp });
+
+    while (emailResult) {
+      emailOtp = otpGenerator.generate(6, {
+        upperCaseAlphabets: true,
+        specialChars: false,
+        lowerCaseAlphabets: false,
+      });
+
+      emailResult = await OTP.findOne({ emailOtp });
+    }
+
+    const newOTP = await OTP.create({
+      emailOtp: emailOtp,
+      contactOtp: emailOtp,
+      email: user.email,
+      contactNumber: user.contactNumber,
+    });
+
+    // await sendPasswordResetEmail(email, emailOtp);
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset email sent",
+      newOTP
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to send password reset email",
+    });
+  }
+};
+
+//Reset password api
+export const resetPassword = async (req, res) => {
+  try {
+    const { otp, newPassword, confirmPassword, email } = req.body;
+
+    if (!otp || !newPassword || !confirmPassword || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+
+    const user = await Users.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Fetching the most recent OTP
+    const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
+
+    // console.log("gxshg", recentOtp);
+
+    if (!recentOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP not found",
+      });
+    }
+
+    // Validating OTPs
+    if (
+      otp !== recentOtp.contactOtp ||
+      otp !== recentOtp.emailOtp
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Provided OTPs do not match the most recent OTPs",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successful",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to reset password",
+    });
+  }
+};

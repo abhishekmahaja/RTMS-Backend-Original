@@ -5,6 +5,10 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
     },
     email: {
       type: String,
@@ -15,11 +19,6 @@ const userSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email address!`,
       },
     },
-    // password: {
-    //   type: String,
-    //   required: true,
-    //   minlength: 6,
-    // },
     contactNumber: {
       type: String,
       required: true,
@@ -27,6 +26,7 @@ const userSchema = new mongoose.Schema(
     employeeID: {
       type: String,
       required: true,
+      unique: true,
     },
     assetName: {
       type: String,
@@ -39,6 +39,8 @@ const userSchema = new mongoose.Schema(
     roleInRTMS: {
       type: String,
       required: true,
+      enum: ["manager", "owner", "employee"],
+      default: "emloyee",
     },
     idCardPhoto: {
       type: String, // Path to ID card photo

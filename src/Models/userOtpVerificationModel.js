@@ -28,10 +28,6 @@ const userOTPVerificationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  // lastSent: {
-  //   type: Date,
-  //   required: true,
-  // },
 });
 
 const UserOTPVerification = mongoose.model('UserOTPVerification', userOTPVerificationSchema);
