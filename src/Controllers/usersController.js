@@ -6,7 +6,7 @@ import {
   sendNotificationToOwner,
   sendPasswordToUser,
   uploadCloudinary,
-} from "../helpers/helper.js";
+} from "../Helpers/helper.js"
 import Users from "../Models/userModel.js";
 import otpGenerator from "otp-generator";
 import OTP from "../Models/OTP-model.js";
