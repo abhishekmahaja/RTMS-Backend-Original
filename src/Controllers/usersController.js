@@ -186,6 +186,7 @@ export const registerUser = async (req, res) => {
       assetName,
       department,
       roleInRTMS,
+      isApprovedByManager: roleInRTMS === "manager" ? true : false,
       idCardPhoto: idCardPhotoRes.secure_url,
       passportPhoto: passportPhotoRes.secure_url,
     });
@@ -493,10 +494,22 @@ export const loginUser = async (req, res) => {
     }
     recentOtp.deleteOne();
 
+    const token = await jwt.sign(
+      {
+        _id: user._id,
+        employeeID: user.employeeID,
+        role: user.roleInRTMS,
+        email: user.email,
+      },
+      process.env.JWT_SECREt,
+      { expiresIn: "1d" }
+    );
+
     return res.json({
       success: true,
       user,
       message: "User logged in successfully",
+      token,
     });
 
     // Now wait for OTP verification step (implement verification endpoint)
