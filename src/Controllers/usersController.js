@@ -302,7 +302,7 @@ export const approveUserByOwner = async (req, res) => {
     if (user.isApprovedByOwner) {
       return res.json({
         success: false,
-        message: "User already aaproved",
+        message: "User already approved",
       });
     }
 

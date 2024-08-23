@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
-// import twilio from "twilio";
+import twilio from "twilio";
 import { v2 as cloudinary } from "cloudinary";
 
 // Create a transporter using your email service provider
@@ -14,15 +14,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// // Initialize Twilio client
-// const twilioClient = twilio(
-//   process.env.TWILIO_ACCOUNT_SID,
-//   process.env.TWILIO_AUTH_TOKEN
-// );
-
-const generatePassword = () => {
-  return Math.random().toString(36).slice(-8); 
-};
+// Initialize Twilio client
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 
 // Send OTP Verification code
 export const sendOTPVerification = async ({
@@ -214,3 +210,6 @@ export const uploadCloudinary = async (file, folder, height, quality) => {
 };
 
 // to Generated password
+const generatePassword = () => {
+  return Math.random().toString(36).slice(-8); 
+};
