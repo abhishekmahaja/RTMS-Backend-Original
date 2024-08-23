@@ -29,8 +29,8 @@ otpSchema.pre("save", async function (next) {
   await sendOTPVerification({
     email: this.email,
     mobile: this.contactNumber,
-    emailOtp : this.emailOtp,
-    contactOtp : this.contactOtp
+    emailOtp: this.emailOtp,
+    contactOtp: this.contactOtp,
   });
 
   next();

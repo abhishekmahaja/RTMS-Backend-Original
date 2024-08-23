@@ -173,7 +173,10 @@ export const sendPasswordToUser = async (user) => {
 };
 
 //approved owner mail to manager and user
-export const sendApprovedNotifactionToManager = async (employeeID, managerEmail) => {
+export const sendApprovedNotifactionToManager = async (
+  employeeID,
+  managerEmail
+) => {
   // Email options
   const mailOptions = {
     from: process.env.AUTH_EMAIL,
@@ -211,5 +214,5 @@ export const uploadCloudinary = async (file, folder, height, quality) => {
 
 // to Generated password
 const generatePassword = () => {
-  return Math.random().toString(36).slice(-8); 
+  return Math.random().toString(36).slice(-8);
 };
