@@ -347,10 +347,10 @@ export const RegistrationStatusUser = async (req, res) => {
 
     // Build the status message based on approval fields
     let statusMessage = "Registration Status: ";
-    if (user.managerApproval && user.ownerApproval) {
+    if (user.isApprovedByManager && user.isApprovedByOwner) {
       statusMessage +=
         "Registration Successful. Password sent to your email. Please login.";
-    } else if (user.managerApproval) {
+    } else if (user.isApprovedByManager) {
       statusMessage += "Approved by Manager. Waiting for Owner approval.";
     } else {
       statusMessage += "Pending Manager approval.";
@@ -359,7 +359,7 @@ export const RegistrationStatusUser = async (req, res) => {
     // Return the status
     res.status(200).json({
       success: true,
-      message: statusMessage,
+      message: "Data fetch successfull!",
       data: {
         employeeID: user.employeeID,
         username: user.username,
@@ -370,6 +370,8 @@ export const RegistrationStatusUser = async (req, res) => {
         roleInRTMS: user.roleInRTMS,
         idCardPhoto: user.idCardPhoto,
         passportPhoto: user.passportPhoto,
+        isApprovedByManager: user.isApprovedByManager,
+        isApprovedByOwner: user.isApprovedByOwner,
         status: statusMessage,
       },
     });
