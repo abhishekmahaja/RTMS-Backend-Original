@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { sendOTPVerification } from "../helpers/helper.js";
+import { sendOTPVerification } from "../Helpers/helper.js";
 
 const otpSchema = new mongoose.Schema({
   email: {

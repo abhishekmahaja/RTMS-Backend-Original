@@ -173,13 +173,13 @@ export const sendPasswordToUser = async (user) => {
 };
 
 //approved owner mail to manager and user
-export const sendApprovedNotifactionToManager = async (employeeID) => {
+export const sendApprovedNotifactionToManager = async (employeeID, managerEmail) => {
   // Email options
   const mailOptions = {
     from: process.env.AUTH_EMAIL,
-    to: user.email,
+    to: managerEmail,
     subject: "Your Account Password",
-    html: `<p>This Employee id approved my Owner ${employeeID}`,
+    html: `<p>This Employee id approved by Owner ${employeeID}`,
   };
 
   try {

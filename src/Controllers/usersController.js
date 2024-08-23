@@ -313,7 +313,7 @@ export const approveUserByOwner = async (req, res) => {
     // Check if user is also approved by owner
     if (user.isApprovedByOwner) {
       await sendPasswordToUser(user);
-      await sendApprovedNotifactionToManager(user.employeeID);
+      await sendApprovedNotifactionToManager(user.employeeID, "kk2757910@gmail.com");
       return res.status(200).json({
         success: true,
         message: "User approved by Owner and Manager and password sent",
@@ -325,6 +325,7 @@ export const approveUserByOwner = async (req, res) => {
       message: "User approved by Owner",
     });
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       success: false,
       message: error.message || "Failed to approve user by Owner",
