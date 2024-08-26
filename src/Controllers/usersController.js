@@ -13,8 +13,6 @@ import OTP from "../Models/OTP-model.js";
 
 console.log("JWT Secret:", process.env.JWT_SECRET);
 
-// const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
 //sent otp api for register function
 export const sendOTPRegister = async (req, res) => {
   try {
@@ -509,7 +507,7 @@ export const loginUser = async (req, res) => {
         role: user.roleInRTMS,
         email: user.email,
       },
-      process.env.JWT_SECREt,
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
