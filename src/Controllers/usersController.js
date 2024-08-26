@@ -11,6 +11,10 @@ import Users from "../Models/userModel.js";
 import otpGenerator from "otp-generator";
 import OTP from "../Models/OTP-model.js";
 
+console.log("JWT Secret:", process.env.JWT_SECRET);
+
+// const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
 //sent otp api for register function
 export const sendOTPRegister = async (req, res) => {
   try {
