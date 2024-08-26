@@ -14,45 +14,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// // Initialize Twilio client
-// const twilioClient = twilio(
-//   process.env.TWILIO_ACCOUNT_SID,
-//   process.env.TWILIO_AUTH_TOKEN
-// );
-
-// // Send OTP Verification code
-// export const sendOTPVerification = async ({
-//   email,
-//   mobile,
-//   emailOtp,
-//   contactOtp,
-// }) => {
-//   try {
-//     // Mail options
-//     const mailOptions = {
-//       from: process.env.AUTH_EMAIL,
-//       to: email,
-//       subject: "Verify Your Email and Mobile",
-//       html: `<p>Enter <b>${emailOtp}</b> in the app to verify email address and mobile number and complete the signup process.</p><p>This code <b>expires in 1 hour</b>.</p>`,
-//     };
-
-//     // Save OTP record
-
-//     await transporter.sendMail(mailOptions);
-
-//     // Send OTP to mobile as well
-//     const smsOptions = {
-//       body: `Your OTP is ${contactOtp}.`,
-//       from: process.env.TWILIO_PHONE_NUMBER,
-//       to: mobile,
-//     };
-
-//     await twilioClient.messages.create(smsOptions);
-//     console.log("SMS sent successfully:", smsResponse.sid);
-//   } catch (error) {
-//     console.log("OTP not sent. Issue:", error.message || error);
-//   }
-// };
 // Initialize Twilio client
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -91,7 +52,6 @@ export const sendOTPVerification = async ({
     console.log("OTP not sent. Issue:", error.message || error);
   }
 };
-
 
 // Email helper function
 export const sendPasswordResetEmail = async (email, otp) => {
@@ -256,5 +216,3 @@ export const uploadCloudinary = async (file, folder, height, quality) => {
 const generatePassword = () => {
   return Math.random().toString(36).slice(-8);
 };
-
-
