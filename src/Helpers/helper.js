@@ -47,7 +47,7 @@ export const sendOTPVerification = async ({
       to: mobile,
     };
 
-    // await twilioClient.messages.create(smsOptions);
+    await twilioClient.messages.create(smsOptions);
   } catch (error) {
     console.log("OTP Not Send");
   }
@@ -165,7 +165,7 @@ export const sendPasswordToUser = async (user) => {
     await transporter.sendMail(mailOptions);
 
     // Send SMS
-    // await twilioClient.messages.create(smsOptions);
+    await twilioClient.messages.create(smsOptions);
   } catch (error) {
     console.error("Error sending password:", error);
     throw new Error("Failed to send password");
