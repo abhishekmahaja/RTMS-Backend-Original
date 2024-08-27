@@ -3,15 +3,17 @@ import {
   addWell,
   updateWell,
   deleteWell,
-  getWells,
+  getAllWells,
+  getOneWell,
 } from "../Controllers/wellMasterController.js";
 
 const wellRouter = express.Router(); // Correctly define wellRouter
 
 // routes to call API
-wellRouter.post("/add", addWell);
-wellRouter.put("/update/:id", updateWell);
-wellRouter.delete("/delete/:id", deleteWell);
-wellRouter.get("/all", getWells);
+wellRouter.post("/add-well", addWell);
+wellRouter.put("/update-well/:id", updateWell);
+wellRouter.delete("/delete-well/:id", deleteWell);
+wellRouter.get("/all-well", getAllWells);
+wellRouter.get("/single-well/:id", getOneWell);
 
 export default wellRouter;

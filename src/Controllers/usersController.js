@@ -576,7 +576,7 @@ export const forgotPassword = async (req, res) => {
       contactNumber: user.contactNumber,
     });
 
-    // await sendPasswordResetEmail(email, emailOtp);
+    await sendPasswordResetEmail(email, emailOtp);
 
     res.status(200).json({
       success: true,
