@@ -15,7 +15,7 @@ const deviceRouter = express.Router();
 deviceRouter.post("/publish-code", generatePublishSecurityCode);
 deviceRouter.post("/subscribe-code", generateSubscribeSecurityCode);
 deviceRouter.get("/all-device", allDevice);
-deviceRouter.get("/one-device/:id", getOneDevice);
+deviceRouter.get("/single-device/:id", getOneDevice);
 deviceRouter.post("/submit-device", submitDeviceData);
 deviceRouter.delete("/delete-device/:id", deleteDevice);
 deviceRouter.put("/update-device/:id", updateDevice);
