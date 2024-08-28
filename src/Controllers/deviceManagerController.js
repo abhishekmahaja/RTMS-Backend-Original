@@ -1,52 +1,113 @@
-// import express from "express";
-// const router = express.Router();
+import Device from "../Models/deviceManagerModel.js";
 
-// // Sample data for wells (replace with database calls)
-// const wells = [
-//   { id: "1", name: "Well A" },
-//   { id: "2", name: "Well B" },
-// ];
+// POST /generate-publish-security-code
+export const generatePublishSecurityCode = async (req, res) => {
+  try {
+    const publishCode = Math.random()
+      .toString(36)
+      .substring(2, 10)
+      .toUpperCase();
+    res.json({
+      success: true,
+      message: "Generated Publish Code successfully",
+      data: publishCode,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error generating Publish Code",
+    });
+  }
+};
 
-// // GET /read-mac
-// router.get("/read-mac", (req, res) => {
-//   const macAddress = "00:1A:2B:3C:4D:5E"; // Replace with actual MAC address retrieval logic
-//   res.json({ macAddress });
-// });
+// POST /generate-subscribe-security-code
+export const generateSubscribeSecurityCode = async (req, res) => {
+  try {
+    const subscribeCode = Math.random()
+      .toString(36)
+      .substring(2, 10)
+      .toUpperCase();
+    res.json({
+      success: true,
+      message: "Generated Subscribe Code successfully",
+      data: subscribeCode,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error generating Subscribe Code",
+    });
+  }
+};
 
-// // GET /get-wells
-// router.get("/get-wells", (req, res) => {
-//   res.json(wells);
-// });
+// GET /all-devices
+export const allDevice = async (req, res) => {
+  try {
+    const devices = await Device.find();
+    res.status(200).json({
+      success: true,
+      message: "All devices retrieved successfully",
+      data: devices,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching devices",
+    });
+  }
+};
 
-// // POST /generate-publish-code
-// router.post("/generate-publish-code", (req, res) => {
-//   const publishCode = Math.random().toString(36).substring(2, 10).toUpperCase(); // Generate a random code
-//   res.json({ publishCode });
-// });
+// GET /device/:id
+export const getOneDevice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const device = await Device.findById(id);
+    if (!device) {
+      return res.status(404).json({
+        success: false,
+        message: "Device not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Device retrieved successfully",
+      data: device,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching device",
+    });
+  }
+};
 
-// // POST /generate-subscribe-code
-// router.post("/generate-subscribe-code", (req, res) => {
-//   const subscribeCode = Math.random()
-//     .toString(36)
-//     .substring(2, 10)
-//     .toUpperCase(); // Generate a random code
-//   res.json({ subscribeCode });
-// });
-
-// // POST /submit-well-settings
-// router.post("/submit-well-settings", (req, res) => {
-//   const { macAddress, wellId, publishCode, subscribeCode, parameters } =
-//     req.body;
-
-//   // Here you would save these settings to the database
-//   res.json({ message: "Well settings submitted successfully" });
-// });
-
-// export default router;
-
-
-// ///routes code 
-// import wellRoutes from "./routes/wellRoutes.js";
-
-// app.use("/api/well", wellRoutes);
-
+// POST /submit-well-settings
+export const submitDeviceData = async (req, res) => {
+  try {
+    const {
+      MACAddress,
+      selectWell,
+      publishSecurityCode,
+      subscribeSecurityCode,
+      parameter,
+    } = req.body;
+    const wellDevice = new Device({
+      MACAddress,
+      selectWell,
+      publishSecurityCode,
+      subscribeSecurityCode,
+      parameter,
+    });
+    await wellDevice.save();
+    res.json({
+      success: true,
+      message: "Well settings submitted successfully",
+      device: wellDevice,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error submitting well settings",
+    });
+  }
+};

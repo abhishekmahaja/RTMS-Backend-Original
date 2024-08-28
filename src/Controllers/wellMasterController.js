@@ -1,6 +1,6 @@
 import Well from "../Models/wellMasterModel.js";
 
-//to add well to show well monitor
+// Add a new well
 export const addWell = async (req, res) => {
   try {
     const newWell = new Well(req.body);
@@ -18,13 +18,22 @@ export const addWell = async (req, res) => {
   }
 };
 
-//to Update well by id to show well monitor
+// Update a well by ID
 export const updateWell = async (req, res) => {
   try {
     const { id } = req.params;
     const updatedWell = await Well.findByIdAndUpdate(id, req.body, {
       new: true,
+      runValidators: true, // Ensure validations are run on update
     });
+
+    if (!updatedWell) {
+      return res.status(404).json({
+        success: false,
+        message: "Well not found",
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: "Well updated successfully",
@@ -38,24 +47,38 @@ export const updateWell = async (req, res) => {
   }
 };
 
-//to delete well by id to show well monitor
+// Delete a well by ID
 export const deleteWell = async (req, res) => {
   try {
     const { id } = req.params;
-    await Well.findByIdAndDelete(id);
-    res.status(200).json({ message: "Well deleted successfully" });
+    const deletedWell = await Well.findByIdAndDelete(id);
+
+    if (!deletedWell) {
+      return res.status(404).json({
+        success: false,
+        message: "Well not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Well deleted successfully",
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting well", error });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error deleting well",
+    });
   }
 };
 
-//to show {get} all well to show well monitor
+// Get all wells
 export const getAllWells = async (req, res) => {
   try {
     const wells = await Well.find();
     res.status(200).json({
       success: true,
-      message: "Data Found All Successfully",
+      message: "All data found successfully",
       wells,
     });
   } catch (error) {
@@ -66,22 +89,28 @@ export const getAllWells = async (req, res) => {
   }
 };
 
-//to get well by id to show well monitor
+// Get a single well by ID
 export const getOneWell = async (req, res) => {
   try {
     const { id } = req.params;
-    const wells = await Well.findOne({
-      _id: id,
-    });
+    const well = await Well.findById(id);
+
+    if (!well) {
+      return res.status(404).json({
+        success: false,
+        message: "Well not found",
+      });
+    }
+
     res.status(200).json({
       success: true,
-      message: "Data Found Successfully",
-      wells,
+      message: "Data found successfully",
+      well,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error Fetching Wells",
+      message: error.message || "Error fetching well",
     });
   }
 };
