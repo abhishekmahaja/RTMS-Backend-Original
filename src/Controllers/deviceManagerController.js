@@ -111,3 +111,55 @@ export const submitDeviceData = async (req, res) => {
     });
   }
 };
+
+// update the device /PUT
+export const updateDevice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateDevice = await Device.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if(!updateDevice) {
+      return res.status(404).json({
+        success: false,
+        message: "Device not found",
+      });
+    }
+    res.status(200).json({
+      success:true,
+      message: "Device Updated Successfully",
+      data: updateDevice,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error To UPDATE Device"
+    });
+  }
+}
+
+// Delete the device /DELETE
+export const deleteDevice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteDevice = await Device.findByIdAndDelete(id);
+    if(!deleteDevice) {
+      return res.status(404).json({
+        success: false,
+        message: "Device not found",
+      });
+    }
+    res.status(200).json({
+      success:true,
+      message: "Device Updated Successfully",
+      data: deleteDevice,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error To UPDATE Device"
+    });
+  }
+}
