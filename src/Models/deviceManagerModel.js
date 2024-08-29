@@ -6,8 +6,22 @@ const DeviceSchema = new mongoose.Schema({
     required: true,
   },
   selectWell: {
-    type: String,
-    required: true,
+    _id: {
+      type: String,
+     
+    },
+    wellNumber: {
+      type: String,
+     
+    },
+    wellInstallation: {
+      type: String,
+    
+    },
+    wellLocation: {
+      type: String,
+    
+    },
   },
   publishSecurityCode: {
     type: String,

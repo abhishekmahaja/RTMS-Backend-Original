@@ -1,4 +1,5 @@
 import Device from "../Models/deviceManagerModel.js";
+import Well from "../Models/wellMasterModel.js";
 
 // POST /generate-publish-security-code
 export const generatePublishSecurityCode = async (req, res) => {
@@ -91,18 +92,37 @@ export const submitDeviceData = async (req, res) => {
       subscribeSecurityCode,
       parameter,
     } = req.body;
-    const wellDevice = new Device({
+
+    const wells = await Well.findById(selectWell._id);
+
+    // console.log("Sssss", wells);
+    if (!wells) {
+      return res.json({
+        success: false,
+        message: "Wells Data Not Found",
+      });
+    }
+
+    const existingDevice = await Device.findOne({ MACAddress });
+
+    if (existingDevice) {
+      return res.json({
+        success: false,
+        message: "Device already present!",
+      });
+    }
+
+    const device = await Device.create({
       MACAddress,
       selectWell,
       publishSecurityCode,
       subscribeSecurityCode,
       parameter,
     });
-    await wellDevice.save();
     res.json({
       success: true,
       message: "Well settings submitted successfully",
-      device: wellDevice,
+      device,
     });
   } catch (error) {
     res.status(500).json({
@@ -121,45 +141,45 @@ export const updateDevice = async (req, res) => {
       runValidators: true,
     });
 
-    if(!updateDevice) {
+    if (!updateDevice) {
       return res.status(404).json({
         success: false,
         message: "Device not found",
       });
     }
     res.status(200).json({
-      success:true,
+      success: true,
       message: "Device Updated Successfully",
       data: updateDevice,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error To UPDATE Device"
+      message: error.message || "Error To UPDATE Device",
     });
   }
-}
+};
 
 // Delete the device /DELETE
 export const deleteDevice = async (req, res) => {
   try {
     const { id } = req.params;
     const deleteDevice = await Device.findByIdAndDelete(id);
-    if(!deleteDevice) {
+    if (!deleteDevice) {
       return res.status(404).json({
         success: false,
         message: "Device not found",
       });
     }
     res.status(200).json({
-      success:true,
+      success: true,
       message: "Device Updated Successfully",
       data: deleteDevice,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error To UPDATE Device"
+      message: error.message || "Error To UPDATE Device",
     });
   }
-}
+};
