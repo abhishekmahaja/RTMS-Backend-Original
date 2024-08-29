@@ -51,27 +51,28 @@ export const sendOTPRegister = async (req, res) => {
       emailResult = await OTP.findOne({ emailOtp });
     }
 
-    let contactOtp = otpGenerator.generate(6, {
-      upperCaseAlphabets: false,
-      specialChars: false,
-      lowerCaseAlphabets: false,
-    });
+    // let contactOtp = otpGenerator.generate(6, {
+    //   upperCaseAlphabets: false,
+    //   specialChars: false,
+    //   lowerCaseAlphabets: false,
+    // });
 
-    let contactResult = await OTP.findOne({ contactOtp });
+    // let contactResult = await OTP.findOne({ contactOtp });
 
-    while (contactResult) {
-      contactOtp = otpGenerator.generate(6, {
-        upperCaseAlphabets: false,
-        specialChars: false,
-        lowerCaseAlphabets: false,
-      });
+    // while (contactResult) {
+    //   contactOtp = otpGenerator.generate(6, {
+    //     upperCaseAlphabets: false,
+    //     specialChars: false,
+    //     lowerCaseAlphabets: false,
+    //   });
 
-      contactResult = await OTP.findOne({ contactOtp });
-    }
+    //   contactResult = await OTP.findOne({ contactOtp });
+    // }
 
     const newOTP = await OTP.create({
       emailOtp,
-      contactOtp,
+      // contactOtp,
+      contactOtp: emailOtp,
       email,
       contactNumber,
     });
@@ -200,7 +201,7 @@ export const registerUser = async (req, res) => {
       newUser.contactNumber,
       newUser.email,
       newUser.department,
-      "abhishekkumarmahajan96250@gmail.com"
+      "kk2757910@gmail.com"
     );
 
     res.status(201).json({
@@ -267,7 +268,7 @@ export const approveUserByManager = async (req, res) => {
       user.contactNumber,
       user.email,
       user.department,
-      "abhishekmahajan8285@gmail.com"
+      "kmonu20789@gmail.com"
     );
 
     res.status(200).json({
