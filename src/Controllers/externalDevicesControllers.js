@@ -1,9 +1,36 @@
 import externalDevice from "../Models/externalDevicesModel.js";
 
 //to data store using external device using post
+// export const externalDataCollect = async (req, res) => {
+//   try {
+//     const newData = new externalDevice(req.body);
+//     await newData.save();
+//     res.status(201).json({
+//       status: true,
+//       message: "Data saved successfully",
+//       data: newData,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Error saving data",
+//     });
+//   }
+// };
+
 export const externalDataCollect = async (req, res) => {
   try {
-    const newData = new externalDevice(req.body);
+    const { GIP, CHP, THP, Battery_Percentage, Solar_Power, Communication } = req.body;
+    const newData = new externalDevice({
+      data: {
+        GIP,
+        CHP,
+        THP,
+        Battery_Percentage,
+        Solar_Power,
+        Communication,
+      },
+    });
     await newData.save();
     res.status(201).json({
       status: true,
