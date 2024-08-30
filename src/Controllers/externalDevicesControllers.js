@@ -1,45 +1,45 @@
 import externalDevice from "../Models/externalDevicesModel.js";
 
 //to data store using external device using post
-// export const externalDataCollect = async (req, res) => {
-//   try {
-//     const newData = new externalDevice(req.body);
-//     await newData.save();
-//     res.status(201).json({
-//       status: true,
-//       message: "Data saved successfully",
-//       data: newData,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message || "Error saving data",
-//     });
-//   }
-// };
-
 export const externalDataCollect = async (req, res) => {
   try {
-    // Create a new entry with data from the request body
-    const newData = new externalDevice({
-      data: req.body,
-    });
-    // Save the new entry to the database
+    const newData = new externalDevice(req.body);
     await newData.save();
-    // Respond with the desired format
     res.status(201).json({
       status: true,
       message: "Data saved successfully",
       data: newData,
     });
   } catch (error) {
-    // Respond with error if something goes wrong
     res.status(500).json({
       success: false,
       message: error.message || "Error saving data",
     });
   }
 };
+
+// export const externalDataCollect = async (req, res) => {
+//   try {
+//     // Create a new entry with data from the request body
+//     const newData = new externalDevice({
+//       data: req.body,
+//     });
+//     // Save the new entry to the database
+//     await newData.save();
+//     // Respond with the desired format
+//     res.status(201).json({
+//       status: true,
+//       message: "Data saved successfully",
+//       data: newData,
+//     });
+//   } catch (error) {
+//     // Respond with error if something goes wrong
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Error saving data",
+//     });
+//   }
+// };
 
 // to get all data using external decice and show
 export const externalDataShow = async (req, res) => {
