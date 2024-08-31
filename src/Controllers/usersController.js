@@ -624,7 +624,7 @@ export const resetPassword = async (req, res) => {
     // Fetching the most recent OTP
     const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
 
-    // console.log("gxshg", recentOtp);
+    console.log("gxshg", recentOtp);
 
     if (!recentOtp) {
       return res.status(400).json({
