@@ -4,6 +4,7 @@ import {
   sendApprovedNotifactionToManager,
   sendNotificationToManager,
   sendNotificationToOwner,
+  sendPasswordResetEmail,
   sendPasswordToUser,
   uploadCloudinary,
 } from "../Helpers/helper.js";
@@ -553,7 +554,7 @@ export const forgotPassword = async (req, res) => {
 
     //sent otp
     let emailOtp = otpGenerator.generate(6, {
-      upperCaseAlphabets: true,
+      upperCaseAlphabets: false,
       specialChars: false,
       lowerCaseAlphabets: false,
     });
