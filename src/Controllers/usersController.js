@@ -81,7 +81,7 @@ export const sendOTPRegister = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "OTP SEND SUCCESSFULLY! CHECK YOUR EMAIL AND CONTACT",
-      newOTP,
+      // newOTP,
     });
   } catch (error) {
     console.log("Error in Sending OTP");
@@ -449,7 +449,7 @@ export const sendOTPLogin = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "OTP SEND SUCCESSFULLY! CHECK YOUR EMAIL AND PHONE",
-      newOTP,
+      // newOTP,
     });
   } catch (error) {
     console.log("Error in Sending OTP");
