@@ -52,28 +52,28 @@ export const sendOTPRegister = async (req, res) => {
       emailResult = await OTP.findOne({ emailOtp });
     }
 
-    let contactOtp = otpGenerator.generate(6, {
-      upperCaseAlphabets: false,
-      specialChars: false,
-      lowerCaseAlphabets: false,
-    });
+    // let contactOtp = otpGenerator.generate(6, {
+    //   upperCaseAlphabets: false,
+    //   specialChars: false,
+    //   lowerCaseAlphabets: false,
+    // });
 
-    let contactResult = await OTP.findOne({ contactOtp });
+    // let contactResult = await OTP.findOne({ contactOtp });
 
-    while (contactResult) {
-      contactOtp = otpGenerator.generate(6, {
-        upperCaseAlphabets: false,
-        specialChars: false,
-        lowerCaseAlphabets: false,
-      });
+    // while (contactResult) {
+    //   contactOtp = otpGenerator.generate(6, {
+    //     upperCaseAlphabets: false,
+    //     specialChars: false,
+    //     lowerCaseAlphabets: false,
+    //   });
 
-      contactResult = await OTP.findOne({ contactOtp });
-    }
+    //   contactResult = await OTP.findOne({ contactOtp });
+    // }
 
     const newOTP = await OTP.create({
       emailOtp,
-      contactOtp,
-      // contactOtp: emailOtp,
+      // contactOtp,
+      contactOtp: emailOtp,
       email,
       contactNumber,
     });
@@ -145,7 +145,7 @@ export const registerUser = async (req, res) => {
     // Fetching the most recent OTP
     const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
 
-    // console.log("gxshg", recentOtp);
+    console.log("gxshg", recentOtp);
 
     if (!recentOtp) {
       return res.status(400).json({
