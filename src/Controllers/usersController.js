@@ -583,7 +583,7 @@ export const forgotPassword = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Password reset email sent",
-      newOTP,
+      // newOTP,
     });
   } catch (error) {
     res.status(500).json({
@@ -605,6 +605,8 @@ export const resetPassword = async (req, res) => {
       });
     }
 
+    // console.log("recent", req.body)
+
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
         success: false,
@@ -624,7 +626,7 @@ export const resetPassword = async (req, res) => {
     // Fetching the most recent OTP
     const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
 
-    console.log("gxshg", recentOtp);
+    // console.log("gxshg", recentOtp);
 
     if (!recentOtp) {
       return res.status(400).json({
