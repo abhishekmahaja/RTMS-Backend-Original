@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema(
       type: Date,
     },
   },
-  { timestamps: true } // This will automatically add `createdAt` and `updatedAt` fields
+  { timestamps: true } 
 );
 
 const Users = mongoose.model("Users", userSchema);
