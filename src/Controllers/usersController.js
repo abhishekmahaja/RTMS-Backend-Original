@@ -87,16 +87,6 @@ export const sendOTPRegister = async (req, res) => {
       contactOtp: newOTP.contactOtp,
     });
 
-    // emailOtp,
-    // contactOtp: emailOtp,
-    // email: user.email,
-    // contactNumber: user.contactNumber,
-
-    // email: user.email,
-    // mobile: user.contactNumber,
-    // emailOtp: emailOtp,
-    // contactOtp: emailOtp,
-
     return res.status(200).json({
       success: true,
       message: "OTP SEND SUCCESSFULLY! CHECK YOUR EMAIL AND CONTACT",
