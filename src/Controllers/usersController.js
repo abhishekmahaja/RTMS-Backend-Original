@@ -81,11 +81,21 @@ export const sendOTPRegister = async (req, res) => {
     });
 
     await sendOTPVerification({
-      email: this.email,
-      mobile: this.contactNumber,
-      emailOtp: this.emailOtp,
-      contactOtp: this.contactOtp,
+      email: newOTP.email,
+      mobile: newOTP.contactNumber,
+      emailOtp: newOTP.emailOtp,
+      contactOtp: newOTP.contactOtp,
     });
+
+    // emailOtp,
+    // contactOtp: emailOtp,
+    // email: user.email,
+    // contactNumber: user.contactNumber,
+
+    // email: user.email,
+    // mobile: user.contactNumber,
+    // emailOtp: emailOtp,
+    // contactOtp: emailOtp,
 
     return res.status(200).json({
       success: true,
@@ -456,10 +466,10 @@ export const sendOTPLogin = async (req, res) => {
     });
 
     await sendOTPVerificationLogin({
-      email: this.email,
-      mobile: this.contactNumber,
-      emailOtp: this.emailOtp,
-      contactOtp: this.contactOtp,
+      email: user.email,
+      mobile: user.contactNumber,
+      emailOtp: emailOtp,
+      contactOtp: emailOtp,
     });
 
     return res.status(200).json({
