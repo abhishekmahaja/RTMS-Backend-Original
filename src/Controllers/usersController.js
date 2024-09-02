@@ -4,6 +4,8 @@ import {
   sendApprovedNotifactionToManager,
   sendNotificationToManager,
   sendNotificationToOwner,
+  sendOTPVerification,
+  sendOTPVerificationLogin,
   sendPasswordResetEmail,
   sendPasswordToUser,
   uploadCloudinary,
@@ -76,6 +78,13 @@ export const sendOTPRegister = async (req, res) => {
       contactOtp: emailOtp,
       email,
       contactNumber,
+    });
+
+    await sendOTPVerification({
+      email: this.email,
+      mobile: this.contactNumber,
+      emailOtp: this.emailOtp,
+      contactOtp: this.contactOtp,
     });
 
     return res.status(200).json({
@@ -444,6 +453,13 @@ export const sendOTPLogin = async (req, res) => {
       contactOtp: emailOtp,
       email: user.email,
       contactNumber: user.contactNumber,
+    });
+
+    await sendOTPVerificationLogin({
+      email: this.email,
+      mobile: this.contactNumber,
+      emailOtp: this.emailOtp,
+      contactOtp: this.contactOtp,
     });
 
     return res.status(200).json({
