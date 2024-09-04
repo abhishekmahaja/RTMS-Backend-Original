@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: (v) => /^[a-zA-Z0-9_]{3,30}$/.test(v),
-        message: "Username must be 3-30 characters long and can only contain letters, numbers, and underscores.",
+        message:
+          "Username must be 3-30 characters long and can only contain letters, numbers, and underscores.",
       },
     },
     password: {
@@ -28,8 +29,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Contact number is required"],
       validate: {
-        validator: (v) => /^\+91[0-9]{10}$/.test(v), 
-        message: "Contact number must be in the format '+91XXXXXXXXXX' and include the '+91' prefix Without any Space.",
+        validator: (v) => /^\+91[0-9]{10}$/.test(v),
+        message:
+          "Contact number must be in the format '+91XXXXXXXXXX' and include the '+91' prefix Without any Space.",
       },
     },
     employeeID: {
@@ -37,8 +39,9 @@ const userSchema = new mongoose.Schema(
       required: [true, "Employee ID is required"],
       unique: true,
       validate: {
-        validator: (v) => /^[a-zA-Z0-9]{5,20}$/.test(v), 
-        message: "Employee ID must be 5-20 characters long and can only contain letters and numbers.",
+        validator: (v) => /^[a-zA-Z0-9]{5,20}$/.test(v),
+        message:
+          "Employee ID must be 5-20 characters long and can only contain letters and numbers.",
       },
     },
     assetName: {
@@ -59,7 +62,7 @@ const userSchema = new mongoose.Schema(
       default: "employee",
     },
     idCardPhoto: {
-      type: String, 
+      type: String,
       required: [true, "ID card photo is required"],
     },
     passportPhoto: {

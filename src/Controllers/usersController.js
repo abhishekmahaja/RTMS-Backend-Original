@@ -459,7 +459,8 @@ export const sendOTPLogin = async (req, res) => {
     if (!usernamePattern.test(username)) {
       return res.status(400).json({
         success: false,
-        message: "Username must be 3-30 characters long and can only contain letters, numbers, and underscores.",
+        message:
+          "Username must be 3-30 characters long and can only contain letters, numbers, and underscores.",
       });
     }
 
