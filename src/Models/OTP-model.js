@@ -25,17 +25,6 @@ const otpSchema = new mongoose.Schema({
   },
 });
 
-// otpSchema.pre("save", async function (next) {
-//   await sendOTPVerification({
-//     email: this.email,
-//     mobile: this.contactNumber,
-//     emailOtp: this.emailOtp,
-//     contactOtp: this.contactOtp,
-//   });
-
-//   next();
-// });
-
 const OTP = mongoose.model("OTP", otpSchema);
 
 export default OTP;

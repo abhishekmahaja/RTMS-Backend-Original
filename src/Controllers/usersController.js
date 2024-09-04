@@ -19,16 +19,44 @@ import OTP from "../Models/OTP-model.js";
 //sent otp api for register function
 export const sendOTPRegister = async (req, res) => {
   try {
-    const { contactNumber, email } = req.body;
-    if (!email || !contactNumber) {
-      return res.status(400).json({
+    if (req.method !== "POST") {
+      return res.status(405).json({
         success: false,
-        message: "All fields required!",
+        message: "Method Not Allowed! Please use POST method.",
       });
     }
 
-    const checkUserPresent = await Users.findOne({ email });
+    const { email, contactNumber } = req.body;
 
+    // Check if all fields are provided
+    if (!email || !contactNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required!",
+      });
+    }
+
+    // Email validation
+    const emailRegex = /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email address!",
+      });
+    }
+
+    // Contact number validation - must start with '+91'
+    const contactNumberRegex = /^\+91\d{10}$/;
+    if (!contactNumberRegex.test(contactNumber)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Contact number must be in the format '+91XXXXXXXXXX' and include the '+91' prefix without any Space.",
+      });
+    }
+
+    // Check if the user is already present
+    const checkUserPresent = await Users.findOne({ email });
     if (checkUserPresent) {
       return res.status(400).json({
         success: false,
@@ -36,6 +64,7 @@ export const sendOTPRegister = async (req, res) => {
       });
     }
 
+    // Generate OTP for email
     let emailOtp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       specialChars: false,
@@ -72,6 +101,7 @@ export const sendOTPRegister = async (req, res) => {
     //   contactResult = await OTP.findOne({ contactOtp });
     // }
 
+    // Create new OTP record
     const newOTP = await OTP.create({
       emailOtp,
       // contactOtp,
@@ -80,6 +110,7 @@ export const sendOTPRegister = async (req, res) => {
       contactNumber,
     });
 
+    // Send OTP via email and SMS
     await sendOTPVerification({
       email: newOTP.email,
       mobile: newOTP.contactNumber,
@@ -89,8 +120,7 @@ export const sendOTPRegister = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "OTP SEND SUCCESSFULLY! CHECK YOUR EMAIL AND CONTACT",
-      // newOTP,
+      message: "OTP sent successfully! Check your email and contact number.",
     });
   } catch (error) {
     console.log("Error in Sending OTP");
@@ -117,8 +147,8 @@ export const registerUser = async (req, res) => {
       emailOtp,
     } = req.body;
 
-    const idCardPhoto = req.files.idCardPhoto;
-    const passportPhoto = req.files.passportPhoto;
+    const idCardPhoto = req.files?.idCardPhoto;
+    const passportPhoto = req.files?.passportPhoto;
 
     // Checking if all fields are provided
     if (
@@ -154,8 +184,6 @@ export const registerUser = async (req, res) => {
     // Fetching the most recent OTP
     const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
 
-    // console.log("gxshg", recentOtp);
-
     if (!recentOtp) {
       return res.status(400).json({
         success: false,
@@ -174,6 +202,18 @@ export const registerUser = async (req, res) => {
       });
     }
     recentOtp.deleteOne();
+
+    // Validating file types (e.g., image)
+    const validImageTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (
+      !validImageTypes.includes(idCardPhoto.mimetype) ||
+      !validImageTypes.includes(passportPhoto.mimetype)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Uploaded files must be images (jpeg, png, jpg)",
+      });
+    }
 
     // Uploading photos to Cloudinary
     const idCardPhotoRes = await uploadCloudinary(
@@ -204,7 +244,7 @@ export const registerUser = async (req, res) => {
       passportPhoto: passportPhotoRes.secure_url,
     });
 
-    //send notification to manager for approval
+    // Send notification to manager for approval
     await sendNotificationToManager(
       newUser.username,
       newUser.employeeID,
@@ -405,15 +445,28 @@ export const RegistrationStatusUser = async (req, res) => {
 export const sendOTPLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
+
+    // Check if username and password are provided
     if (!username || !password) {
       return res.status(400).json({
         success: false,
-        message: "All fields required!",
+        message: "All fields are required!",
       });
     }
 
+    // Validate username according to the schema
+    const usernamePattern = /^[a-zA-Z0-9_]{3,30}$/;
+    if (!usernamePattern.test(username)) {
+      return res.status(400).json({
+        success: false,
+        message: "Username must be 3-30 characters long and can only contain letters, numbers, and underscores.",
+      });
+    }
+
+    // Find the user by username
     const user = await Users.findOne({ username });
 
+    // Check if the user exists
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -421,21 +474,25 @@ export const sendOTPLogin = async (req, res) => {
       });
     }
 
+    // Compare the provided password with the stored hash
     const passwordMatch = await bcrypt.compare(password, user.password);
 
+    // Check if the password matches
     if (!passwordMatch) {
       return res.status(404).json({
         success: false,
-        message: "Password doesn't match. Please enter the correct password",
+        message: "Password doesn't match. Please enter the correct password.",
       });
     }
 
+    // Generate a unique 6-digit OTP
     let emailOtp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       specialChars: false,
       lowerCaseAlphabets: false,
     });
 
+    // Ensure the OTP is unique
     let emailResult = await OTP.findOne({ emailOtp });
 
     while (emailResult) {
@@ -444,10 +501,10 @@ export const sendOTPLogin = async (req, res) => {
         specialChars: false,
         lowerCaseAlphabets: false,
       });
-
       emailResult = await OTP.findOne({ emailOtp });
     }
 
+    // Create a new OTP record in the database
     const newOTP = await OTP.create({
       emailOtp,
       contactOtp: emailOtp,
@@ -455,6 +512,7 @@ export const sendOTPLogin = async (req, res) => {
       contactNumber: user.contactNumber,
     });
 
+    // Send OTP to the user's email and phone
     await sendOTPVerificationLogin({
       email: user.email,
       mobile: user.contactNumber,
@@ -464,15 +522,13 @@ export const sendOTPLogin = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "OTP SEND SUCCESSFULLY! CHECK YOUR EMAIL AND PHONE",
-      // newOTP,
+      message: "OTP sent successfully! Check your email and phone.",
     });
   } catch (error) {
-    console.log("Error in Sending OTP");
-    console.log(error);
+    console.error("Error in sending OTP:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "Error in Sending OTP!",
+      message: error.message || "Error in sending OTP!",
     });
   }
 };
