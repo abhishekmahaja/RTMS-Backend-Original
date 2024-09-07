@@ -36,12 +36,15 @@ export const sendOTPRegister = async (req, res) => {
       });
     }
 
-    // Email validation
-    const emailRegex = /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i;
-    if (!emailRegex.test(email)) {
+    // Email validation with min/max length constraints
+    const emailRegex =
+      /^[\w.%+-]+@([a-zA-Z0-9-]+\.)+(gmail\.com|com|net|org|edu|gov|mil|co\.in|in|co|io|info|biz|tech|me|ai)$/i;
+
+    if (!emailRegex.test(email) || email.length < 5 || email.length > 56) {
       return res.status(400).json({
         success: false,
-        message: "Invalid email address!",
+        message:
+          "Invalid email address! Please provide a valid email ending (com|net|org|edu|gov|mil|co.in|in|co|io|info|biz|tech|me|ai)",
       });
     }
 
