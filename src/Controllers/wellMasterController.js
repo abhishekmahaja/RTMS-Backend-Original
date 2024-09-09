@@ -22,7 +22,7 @@ export const addWell = async (req, res) => {
     //notification send to Manager
     await sendWellNotificationToOwner(
       process.env.MANAGER_MAIL,
-      "Add Well Now wait for approval ",
+      "Add Well Now wait for approval",
       `<p>Add Well And Now Wait For Approval and well number ${newWell.wellNumber}</p>`
     );
   } catch (error) {
@@ -141,7 +141,7 @@ export const updateWell = async (req, res) => {
       });
     }
 
-    updatedWell.isApprovedByOwner= false;
+    updatedWell.isApprovedByOwner = false;
     updatedWell.isApprovedByManager = false;
     updatedWell.save();
 
@@ -178,9 +178,9 @@ export const getNotApprovalWells = async (req, res) => {
     // Find wells where either manager or owner has not approved
     const approvalWells = await Well.find({
       $or: [
-        { isApprovedByManager: false },  // Not approved by manager
-        { isApprovedByOwner: false }     // Not approved by owner
-      ]
+        { isApprovedByManager: false }, // Not approved by manager
+        { isApprovedByOwner: false }, // Not approved by owner
+      ],
     });
 
     res.status(200).json({
@@ -239,9 +239,9 @@ export const getAllWells = async (req, res) => {
   try {
     const wells = await Well.find({
       $and: [
-        { isApprovedByManager: true },  // Not approved by manager
-        { isApprovedByOwner: true }     // Not approved by owner
-      ]
+        { isApprovedByManager: true }, // Not approved by manager
+        { isApprovedByOwner: true }, // Not approved by owner
+      ],
     });
     res.status(200).json({
       success: true,
