@@ -249,3 +249,21 @@ export const uploadCloudinary = async (file, folder, height, quality) => {
 const generatePassword = () => {
   return Math.random().toString(36).slice(-8);
 };
+
+// Add Well Function to send the email with dynamic content
+export const sendWellNotificationToOwner = async (ownerToEmail, subject, htmlContent) => {
+  try {
+    const ownerWellSendOption = {
+      from: process.env.AUTH_EMAIL,
+      to: ownerToEmail,
+      subject: subject,  // Dynamic subject
+      html: htmlContent, // Dynamic HTML content
+    };
+    
+    await transporter.sendMail(ownerWellSendOption);
+    console.log("Mail sent successfully to Owner");
+  } catch (error) {
+    console.log("Mail not sent to Owner", error);
+  }
+};
+

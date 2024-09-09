@@ -20,6 +20,14 @@ const WellSchema = new mongoose.Schema({
   longitude: {
     type: Number,
   },
+  isApprovedByManager: {
+    type: Boolean,
+    default: false,
+  },
+  isApprovedByOwner: {
+    type: Boolean,
+    default: false,
+  },
   notificationSettings: [
     {
       parameter: {

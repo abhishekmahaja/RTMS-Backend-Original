@@ -253,7 +253,7 @@ export const registerUser = async (req, res) => {
       newUser.contactNumber,
       newUser.email,
       newUser.department,
-      "kk2757910@gmail.com"
+      process.env.MANAGER_MAIL
     );
 
     res.status(201).json({
@@ -320,7 +320,7 @@ export const approveUserByManager = async (req, res) => {
       user.contactNumber,
       user.email,
       user.department,
-      "kmonu20789@gmail.com"
+      process.env.OWNER_MAIL
     );
 
     res.status(200).json({
@@ -382,7 +382,6 @@ export const approveUserByOwner = async (req, res) => {
       success: true,
       message: "User approved by Owner and Manager and password sent",
     });
-
   } catch (error) {
     console.log(error);
     res.status(500).json({
