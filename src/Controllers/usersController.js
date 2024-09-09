@@ -325,7 +325,7 @@ export const approveUserByManager = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "User approved by manager",
+      message: "User approved by manager and Now Wait for Owner Approvel",
     });
   } catch (error) {
     res.status(500).json({
@@ -380,8 +380,9 @@ export const approveUserByOwner = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "User approved by Owner",
+      message: "User approved by Owner and Manager and password sent",
     });
+
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -457,12 +458,12 @@ export const sendOTPLogin = async (req, res) => {
     }
 
     // Validate username according to the schema
-    const usernamePattern = /^[a-zA-Z0-9_]{3,30}$/;
+    const usernamePattern = /^[a-zA-Z0-9_]{5,15}$/;
     if (!usernamePattern.test(username)) {
       return res.status(400).json({
         success: false,
         message:
-          "Username must be 3-30 characters long and can only contain letters, numbers, and underscores.",
+          "Username must be 5-15 characters long and can only contain letters, numbers, and underscores(_).",
       });
     }
 
@@ -585,7 +586,7 @@ export const loginUser = async (req, res) => {
         email: user.email,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "1d" }
     );
 
     return res.json({
@@ -657,7 +658,7 @@ export const forgotPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Password reset email sent",
+      message: "Password reset Verification OTP sent on email.",
       // newOTP,
     });
   } catch (error) {

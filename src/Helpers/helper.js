@@ -33,7 +33,7 @@ export const sendOTPVerification = async ({
       from: process.env.AUTH_EMAIL,
       to: email,
       subject: "Verify Your Email and Mobile",
-      html: `<p>Enter <b>${emailOtp}</b> in the app to verify email address and mobile number and complete the signup process.</p><p>This code <b>expires in 1 hour</b>.</p>`,
+      html: `<p>Enter <b>${emailOtp}</b> in the app to verify email address and mobile number and complete the signup process.</p><p>This code <b>expires in 15 Minutes </b>.</p>`,
     };
 
     // Send email OTP
@@ -66,7 +66,7 @@ export const sendOTPVerificationLogin = async ({
       from: process.env.AUTH_EMAIL,
       to: email,
       subject: "Verify Your Email and Mobile",
-      html: `<p>Enter <b>${emailOtp}</b> in the app to verify email address and mobile number and complete the Login process.</p><p>This code <b>expires in 1 hour</b>.</p>`,
+      html: `<p>Enter <b>${emailOtp}</b> in the app to verify email address and mobile number and complete the Login process.</p><p>This code <b>expires in 15 minutes </b>.</p>`,
     };
 
     // Send email OTP
