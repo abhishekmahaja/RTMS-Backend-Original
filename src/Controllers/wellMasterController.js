@@ -238,7 +238,7 @@ export const deleteWell = async (req, res) => {
 export const getAllWells = async (req, res) => {
   try {
     const wells = await Well.find({
-      $or: [
+      $and: [
         { isApprovedByManager: true },  // Not approved by manager
         { isApprovedByOwner: true }     // Not approved by owner
       ]
