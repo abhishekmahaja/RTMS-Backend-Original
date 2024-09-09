@@ -261,7 +261,7 @@ export const sendWellNotificationToOwner = async (ownerToEmail, subject, htmlCon
     };
     
     await transporter.sendMail(ownerWellSendOption);
-    console.log("Mail sent successfully to Owner");
+    // console.log("Mail sent successfully to Owner");
   } catch (error) {
     console.log("Mail not sent to Owner", error);
   }

@@ -1,4 +1,5 @@
 import Well from "../Models/wellMasterModel.js";
+import { sendWellNotificationToOwner } from "../Helpers/helper.js";
 
 // Add a new well
 export const addWell = async (req, res) => {
@@ -7,7 +8,7 @@ export const addWell = async (req, res) => {
     await newWell.save();
     res.status(201).json({
       success: true,
-      message: "Well added successfully",
+      message: "Well added successfully and Now Wait for Approval",
       well: newWell,
     });
 
@@ -33,7 +34,7 @@ export const addWell = async (req, res) => {
 };
 
 //Add Well is approved by Manager
-export const WellApprovedByManager = async (req, res) => {
+export const wellApprovedByManager = async (req, res) => {
   try {
     const { id } = req.params;
     const approvedManager = await Well.findById(id);
@@ -53,7 +54,6 @@ export const WellApprovedByManager = async (req, res) => {
 
     approvedManager.isApprovedByManager = true;
     await approvedManager.save();
-
     res.status(200).json({
       success: true,
       message: "Well Approved By Manager Now Wait For Owner Approval",
@@ -81,7 +81,7 @@ export const WellApprovedByManager = async (req, res) => {
 };
 
 //Add Well is approved by owner
-export const WellApprovedByOwner = async (req, res) => {
+export const wellApprovedByOwner = async (req, res) => {
   try {
     const { id } = req.params;
     const approvedOwner = await Well.findById(id);
@@ -100,7 +100,17 @@ export const WellApprovedByOwner = async (req, res) => {
     }
 
     approvedOwner.isApprovedByOwner = true;
-    approvedOwner.isApprovedByManager = true;
+
+    if (!approvedOwner.isApprovedByManager) {
+      approvedOwner.isApprovedByManager = true;
+      await approvedOwner.save();
+      res.status(200).json({
+        success: true,
+        message:
+          "This Well Directly Approved By Owner No Need to Manager Approval",
+      });
+    }
+
     await approvedOwner.save();
 
     res.status(200).json({
@@ -131,9 +141,13 @@ export const updateWell = async (req, res) => {
       });
     }
 
+    updatedWell.isApprovedByOwner= false;
+    updatedWell.isApprovedByManager = false;
+    updatedWell.save();
+
     res.status(200).json({
       success: true,
-      message: "Well updated successfully",
+      message: "Well updated successfully and Now Wait For Approval",
       well: updatedWell,
     });
 
@@ -158,6 +172,30 @@ export const updateWell = async (req, res) => {
   }
 };
 
+//Well approval Data Show
+export const getNotApprovalWells = async (req, res) => {
+  try {
+    // Find wells where either manager or owner has not approved
+    const approvalWells = await Well.find({
+      $or: [
+        { isApprovedByManager: false },  // Not approved by manager
+        { isApprovedByOwner: false }     // Not approved by owner
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Unapproved Wells Fetched Successfully",
+      approvalWells,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error Fetching Unapproved Wells",
+    });
+  }
+};
+
 // Delete a well by ID
 export const deleteWell = async (req, res) => {
   try {
@@ -173,7 +211,7 @@ export const deleteWell = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Well deleted successfully",
+      message: "Well deleted successfully And Now Wait For Approval",
     });
 
     ///notification send to Owner
@@ -199,7 +237,12 @@ export const deleteWell = async (req, res) => {
 // Get all wells
 export const getAllWells = async (req, res) => {
   try {
-    const wells = await Well.find();
+    const wells = await Well.find({
+      $or: [
+        { isApprovedByManager: true },  // Not approved by manager
+        { isApprovedByOwner: true }     // Not approved by owner
+      ]
+    });
     res.status(200).json({
       success: true,
       message: "All data found successfully",
