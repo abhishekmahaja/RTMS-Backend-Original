@@ -145,7 +145,7 @@ export const registerUser = async (req, res) => {
       assetName,
       department,
       roleInRTMS,
-      contactOtp,
+      // contactOtp,
       emailOtp,
     } = req.body;
 
@@ -161,7 +161,7 @@ export const registerUser = async (req, res) => {
       !assetName ||
       !department ||
       !roleInRTMS ||
-      !contactOtp ||
+      // !contactOtp ||
       !emailOtp ||
       !idCardPhoto ||
       !passportPhoto
@@ -195,7 +195,7 @@ export const registerUser = async (req, res) => {
 
     // Validating OTPs
     if (
-      contactOtp !== recentOtp.contactOtp ||
+      // contactOtp !== recentOtp.contactOtp ||
       emailOtp !== recentOtp.emailOtp
     ) {
       return res.status(400).json({
