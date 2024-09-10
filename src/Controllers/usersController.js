@@ -145,9 +145,10 @@ export const registerUser = async (req, res) => {
       assetName,
       department,
       roleInRTMS,
-      contactOtp,
       emailOtp,
     } = req.body;
+
+    // console.log("req.ddd", req.body);
 
     const idCardPhoto = req.files?.idCardPhoto;
     const passportPhoto = req.files?.passportPhoto;
@@ -161,7 +162,6 @@ export const registerUser = async (req, res) => {
       !assetName ||
       !department ||
       !roleInRTMS ||
-      !contactOtp ||
       !emailOtp ||
       !idCardPhoto ||
       !passportPhoto
@@ -194,10 +194,7 @@ export const registerUser = async (req, res) => {
     }
 
     // Validating OTPs
-    if (
-      contactOtp !== recentOtp.contactOtp ||
-      emailOtp !== recentOtp.emailOtp
-    ) {
+    if (emailOtp !== recentOtp.emailOtp) {
       return res.status(400).json({
         success: false,
         message: "Provided OTPs do not match the most recent OTPs",

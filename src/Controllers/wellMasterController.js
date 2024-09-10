@@ -120,7 +120,7 @@ export const wellApprovedByOwner = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error Adding Well Approval By Manager",
+      message: error.message || "Error Adding Well Approval By Owner",
     });
   }
 };

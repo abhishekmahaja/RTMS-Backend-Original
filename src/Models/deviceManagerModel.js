@@ -8,19 +8,23 @@ const DeviceSchema = new mongoose.Schema({
   selectWell: {
     _id: {
       type: String,
-     
     },
     wellNumber: {
       type: String,
-     
     },
     wellInstallation: {
       type: String,
-    
     },
     wellLocation: {
       type: String,
-    
+    },
+    isApprovedByManager: {
+      type: Boolean,
+      default: false,
+    },
+    isApprovedByOwner: {
+      type: Boolean,
+      default: false,
     },
   },
   publishSecurityCode: {
