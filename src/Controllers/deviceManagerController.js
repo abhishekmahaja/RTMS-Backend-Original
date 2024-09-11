@@ -20,7 +20,7 @@ export const generatePublishSecurityCode = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error generating Publish Code",
+      message: error.message || "Internal Server Error ",
     });
   }
 };
