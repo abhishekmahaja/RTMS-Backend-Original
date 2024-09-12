@@ -124,6 +124,7 @@ export const sendOTPRegister = async (req, res) => {
       success: true,
       message: "OTP sent successfully! Check your email and contact number.",
     });
+
   } catch (error) {
     console.log("Error in Sending OTP");
     console.log(error);
@@ -261,7 +262,7 @@ export const registerUser = async (req, res) => {
     res.status(201).json({
       success: true,
       message:
-        "User registered successfully. Waiting for approval by Manager and Owner.",
+        "User registered successfully. Waiting for approval by Manager and Owner",
       data: {
         _id: newUser._id,
         username: newUser.username,
@@ -515,6 +516,7 @@ export const sendOTPLogin = async (req, res) => {
       contactOtp: emailOtp,
       email: user.email,
       contactNumber: user.contactNumber,
+      // newOTP,// to show otp
     });
 
     // Send OTP to the user's email and phone
@@ -529,6 +531,7 @@ export const sendOTPLogin = async (req, res) => {
       success: true,
       message: "OTP sent successfully! Check your email and phone.",
     });
+
   } catch (error) {
     console.error("Error in sending OTP:", error);
     return res.status(500).json({
@@ -592,14 +595,14 @@ export const loginUser = async (req, res) => {
 
     return res.json({
       success: true,
-      user,
+      // user, //to all user details
       message: "User logged in successfully",
       token,
     });
 
     // Now wait for OTP verification step (implement verification endpoint)
   } catch (error) {
-    console.log("Error in Login Controller");
+    // console.log("Error in Login Controller");
     console.log(error);
     return res.status(500).json({
       success: false,
