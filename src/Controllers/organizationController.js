@@ -1,17 +1,13 @@
 import Organization from "../Models/organizationModel.js";
 
-// Organization Update Data API
-export const organizationUpdateData = async (req, res) => {
-  const { organizationName, address, city, state, country, pinCode, phone, fax } = req.body;
+// organization Add Data APi
+export const organizationAddData = async (req, res) => {
   try {
-    const organization = await Organization.findOneAndUpdate(
-      { organizationName }, // Matching by name
-      { address, city, state, country, pinCode, phone, fax }, 
-      { new: true, upsert: true } // Options: return updated document or create a new one if it doesn't exist
-    );
+    const organizationAdd = await Organization.create(req.body);
     res.json({
       success: true,
-      data: organization,
+      message: "Data Update Successfully",
+      data: organizationAdd,
     });
   } catch (error) {
     res.status(500).json({
@@ -21,65 +17,32 @@ export const organizationUpdateData = async (req, res) => {
   }
 };
 
-// Department Add Data API
-export const organizationAddDepartmentData = async (req, res) => {
-  const { OrganizationName, department } = req.body;
+// Organization Update Data API
+export const organizationUpdateData = async (req, res) => {
   try {
-    const organization = await Organization.findOneAndUpdate(
-      { organizationName },
-      { $push: { departments: department } },
-      { new: true }
-    );
+    const { id } = req.params;
+    const organizationUpdate = await Organization.findOneAndUpdate(id ,req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!organizationUpdate) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization Not Found",
+      });
+    }
+
     res.json({
       success: true,
-      data: organization,
+      message: "Data Update Successfully",
+      data: organizationUpdate,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error adding department",
+      message: error.message || "Error updating organization data",
     });
   }
 };
 
-// Position Add Data API
-export const organizationAddPositionData = async (req, res) => {
-  const { OrganizationName, position } = req.body;
-  try {
-    const organization = await Organization.findOneAndUpdate(
-      { organizationName },
-      { $push: { positions: position } },
-      { new: true }
-    );
-    res.json({
-      success: true,
-      data: organization,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Error adding position",
-    });
-  }
-};
-
-// Approval Chain Add Data API
-export const organizationAddApprovalChainData = async (req, res) => {
-  const { OrganizationName, action, level1, level2 } = req.body;
-  try {
-    const organization = await Organization.findOneAndUpdate(
-      { organizationName },
-      { $push: { approvalChain: { action, level1, level2 } } },
-      { new: true }
-    );
-    res.json({
-      success: true,
-      data: organization,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Error adding approval chain",
-    });
-  }
-};
