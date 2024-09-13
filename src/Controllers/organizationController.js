@@ -2,10 +2,10 @@ import Organization from "../Models/organizationModel.js";
 
 // Organization Update Data API
 export const organizationUpdateData = async (req, res) => {
-  const { name, address, city, state, country, pinCode, phone, fax } = req.body;
+  const { organizationName, address, city, state, country, pinCode, phone, fax } = req.body;
   try {
     const organization = await Organization.findOneAndUpdate(
-      { name }, // Matching by name
+      { organizationName }, // Matching by name
       { address, city, state, country, pinCode, phone, fax }, 
       { new: true, upsert: true } // Options: return updated document or create a new one if it doesn't exist
     );
@@ -23,10 +23,10 @@ export const organizationUpdateData = async (req, res) => {
 
 // Department Add Data API
 export const organizationAddDepartmentData = async (req, res) => {
-  const { name, department } = req.body;
+  const { OrganizationName, department } = req.body;
   try {
     const organization = await Organization.findOneAndUpdate(
-      { name },
+      { organizationName },
       { $push: { departments: department } },
       { new: true }
     );
@@ -44,10 +44,10 @@ export const organizationAddDepartmentData = async (req, res) => {
 
 // Position Add Data API
 export const organizationAddPositionData = async (req, res) => {
-  const { name, position } = req.body;
+  const { OrganizationName, position } = req.body;
   try {
     const organization = await Organization.findOneAndUpdate(
-      { name },
+      { organizationName },
       { $push: { positions: position } },
       { new: true }
     );
@@ -65,10 +65,10 @@ export const organizationAddPositionData = async (req, res) => {
 
 // Approval Chain Add Data API
 export const organizationAddApprovalChainData = async (req, res) => {
-  const { name, action, level1, level2 } = req.body;
+  const { OrganizationName, action, level1, level2 } = req.body;
   try {
     const organization = await Organization.findOneAndUpdate(
-      { name },
+      { organizationName },
       { $push: { approvalChain: { action, level1, level2 } } },
       { new: true }
     );
