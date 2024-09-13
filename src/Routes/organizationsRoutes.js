@@ -1,9 +1,29 @@
 import express from "express";
-import { organizationAddData } from "../Controllers/organizationController.js";
+import {
+  organizationAddApprovalChainData,
+  organizationAddDepartmentData,
+  organizationAddPositionData,
+  organizationUpdateData,
+} from "../Controllers/organizationController.js";
 
 const organizationRouter = express.Router();
 
-//Routes to Call API
-organizationRouter.post("/organization-add-data",organizationAddData);
+// Route to update organization data
+organizationRouter.post("/organization-update-data", organizationUpdateData);
+// Route to add department
+organizationRouter.post(
+  "/organization-add-department-data",
+  organizationAddDepartmentData
+);
+// Route to add position
+organizationRouter.post(
+  "/organization-add-position-data",
+  organizationAddPositionData
+);
+// Route to add approval chain
+organizationRouter.post(
+  "/organization-add-approval-chain-data",
+  organizationAddApprovalChainData
+);
 
 export default organizationRouter;
