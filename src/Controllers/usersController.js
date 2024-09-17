@@ -124,7 +124,6 @@ export const sendOTPRegister = async (req, res) => {
       success: true,
       message: "OTP sent successfully! Check your email and contact number.",
     });
-
   } catch (error) {
     console.log("Error in Sending OTP");
     console.log(error);
@@ -394,6 +393,53 @@ export const approveUserByOwner = async (req, res) => {
   }
 };
 
+//Users Not Approval Yet (By Manager)
+export const getNotApprovalManagerUser = async (req, res) => {
+  try {
+    // Find User where either manager or owner has not approved
+    const approvedManagerUsers = await Users.find({
+      $or: [
+        { isApprovedByManager: false }, //Not approved by manager
+      ],
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Unapproved Users Fetched Successfully",
+      approvedManagerUsers,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error Fetching Unapproval User By Manager",
+    });
+  }
+};
+
+//Users Not Approval Yet (By Manager)
+export const getNotApprovalOwnerUser = async (req, res) => {
+  try {
+    // Find User where either manager or owner has not approved
+    const approvedOwnerUsers = await Users.find({
+      $or: [
+        { isApprovedByManager: false }, //Not approved by manager
+        { isApprovedByOwner: false }, //Not Approval By Owner
+      ],
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Unapproved Users Fetched Successfully",
+      approvedOwnerUsers,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error Fetching Unapproval User By Owner",
+    });
+  }
+};
+
 // Status check the registration
 export const RegistrationStatusUser = async (req, res) => {
   try {
@@ -531,7 +577,6 @@ export const sendOTPLogin = async (req, res) => {
       success: true,
       message: "OTP sent successfully! Check your email and phone.",
     });
-
   } catch (error) {
     console.error("Error in sending OTP:", error);
     return res.status(500).json({

@@ -30,7 +30,7 @@ export const organizationUpdateData = async (req, res) => {
     }
 
     const organizationUpdate = await Organization.findOneAndUpdate(
-      {_id: id},
+      { _id: id },
       req.body,
       {
         new: true,
@@ -50,7 +50,6 @@ export const organizationUpdateData = async (req, res) => {
       message: "Data Update Successfully",
       data: organizationUpdate,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -64,7 +63,7 @@ export const organizationGetOneData = async (req, res) => {
   try {
     const { id } = req.params;
     const organizationUpdate = await Organization.findById(
-      {_id: id},
+      { _id: id },
       req.body,
       {
         new: true,

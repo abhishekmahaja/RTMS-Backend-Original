@@ -9,6 +9,8 @@ import {
   forgotPassword,
   resetPassword,
   RegistrationStatusUser,
+  getNotApprovalManagerUser,
+  getNotApprovalOwnerUser,
 } from "../Controllers/usersController.js";
 import {
   isManager,
@@ -27,6 +29,8 @@ router.post(
   isManager,
   approveUserByManager
 );
+router.get("/get-not-approved-manager-user", getNotApprovalManagerUser);
+router.get("/get-not-approval-owner-user", getNotApprovalOwnerUser);
 router.post("/approve-by-owner", protectRoute, isOwner, approveUserByOwner);
 router.post("/registration-status", RegistrationStatusUser);
 router.post("/send-otp-login", sendOTPLogin);
