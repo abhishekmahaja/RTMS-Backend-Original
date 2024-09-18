@@ -423,7 +423,7 @@ export const getNotApprovalOwnerUser = async (req, res) => {
     const approvedOwnerUsers = await Users.find({
       $or: [
         { isApprovedByManager: false }, //Not approved by manager
-        { isApprovedByOwner: false }, //Not Approval By Owner
+        { isApprovedByOwner: false }, //Not Approved By Owner
       ],
     });
 
