@@ -1,8 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../Models/userModel.js";
 
-// Adjust the import according to your project structure
-
+// the JWT Token send in login
 export const protectRoute = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -40,6 +39,7 @@ export const protectRoute = async (req, res, next) => {
   }
 };
 
+//manger role route protected to approval
 export const isManager = (req, res, next) => {
   try {
     const user = req.user;
@@ -58,6 +58,7 @@ export const isManager = (req, res, next) => {
   }
 };
 
+// Owner role route protected to approval
 export const isOwner = (req, res, next) => {
   try {
     const user = req.user;
