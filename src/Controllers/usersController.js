@@ -643,7 +643,7 @@ export const loginUser = async (req, res) => {
       // user, //to all user details
       message: "User logged in successfully",
       token,
-      role
+      role,
     });
 
     // Now wait for OTP verification step (implement verification endpoint)
