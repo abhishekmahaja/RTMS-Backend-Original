@@ -405,7 +405,7 @@ export const rejectUserByManager = async (req, res) => {
         message: "user ID is required",
       });
     };
-    
+
     const user = await Users.findOne({ employeeID: employeeID });
 
     //return res.json({user})
@@ -442,7 +442,7 @@ export const rejectUserByManager = async (req, res) => {
 };
 
 //Reject User By Owner
-export const rejectUserByOwner = async (res, res) => {
+export const rejectUserByOwner = async (req, res) => {
   try {
     const { employeeID } = req.body;
 
