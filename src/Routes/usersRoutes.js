@@ -11,6 +11,8 @@ import {
   RegistrationStatusUser,
   getNotApprovalManagerUser,
   getNotApprovalOwnerUser,
+  rejectUserByManager,
+  rejectUserByOwner,
 } from "../Controllers/usersController.js";
 import {
   isManager,
@@ -29,6 +31,8 @@ router.post(
   isManager,
   approveUserByManager
 );
+router.post("/reject-user-by-manager", rejectUserByManager);
+router.post("/reject-user-by-owner", rejectUserByOwner);
 router.get("/get-not-approved-manager-user", getNotApprovalManagerUser);
 router.get("/get-not-approval-owner-user", getNotApprovalOwnerUser);
 router.post("/approve-by-owner", protectRoute, isOwner, approveUserByOwner);

@@ -365,6 +365,7 @@ export const approveUserByOwner = async (req, res) => {
 
     // Set user's approval status
     user.isApprovedByOwner = true;
+    user.isApprovedByManager = true;
     await user.save();
 
     // Check if user is also approved by owner
@@ -383,6 +384,87 @@ export const approveUserByOwner = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "User approved by Owner and Manager and password sent",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to approve user by Owner",
+    });
+  }
+};
+
+// Reject user by manager
+export const rejectUserByManager = async (req, res) => {
+  try {
+    const { employeeID } = req.body;
+
+    if (!employeeID) {
+      return res.status(400).json({
+        success: false,
+        message: "user ID is required",
+      });
+    }
+    const user = await Users.findOne({ employeeID: employeeID });
+
+    //return res.json({user})
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not Found",
+      });
+    }
+
+    //set user reject status
+    const userDelete = await Users.deleteOne({ employeeID: employeeID });
+
+    //send notifications to owner for approval
+    await sendNotificationToOwner(
+      user.username,
+      user.employeeID,
+      user.contactNumber,
+      user.email,
+      user.department,
+      process.env.OWNER_MAIL
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "USer Reject By Manger",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to Reject user by manager",
+    });
+  }
+};
+
+//Reject User By Owner
+export const rejectUserByOwner = async (res, res) => {
+  try {
+    const { employeeID } = req.body;
+
+    if (!employeeID) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+    const user = await Users.findOne({ employeeID: employeeID });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    //set user reject status
+    const userDelete = await Users.deleteOne({ employeeID: employeeID });
+
+    res.status(200).json({
+      success: true,
+      message: "User Reject by Owner",
     });
   } catch (error) {
     console.log(error);
