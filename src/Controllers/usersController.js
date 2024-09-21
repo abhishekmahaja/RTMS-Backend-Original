@@ -589,12 +589,12 @@ export const sendOTPLogin = async (req, res) => {
     }
 
     // Validate username according to the schema
-    const usernamePattern = /^[a-zA-Z0-9_]{5,15}$/;
+    const usernamePattern = /^[a-zA-Z0-9_]{3,15}$/;
     if (!usernamePattern.test(username)) {
       return res.status(400).json({
         success: false,
         message:
-          "Username must be 5-15 characters long and can only contain letters, numbers, and underscores(_).",
+          "Username must be 3-15 characters long and can only contain letters, numbers, and underscores(_).",
       });
     }
 
