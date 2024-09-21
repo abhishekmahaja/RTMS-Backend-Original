@@ -262,18 +262,18 @@ export const registerUser = async (req, res) => {
       success: true,
       message:
         "User registered successfully. Waiting for approval by Manager and Owner",
-      data: {
-        _id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-        contactNumber: newUser.contactNumber,
-        employeeID: newUser.employeeID,
-        assetName: newUser.assetName,
-        department: newUser.department,
-        roleInRTMS: newUser.roleInRTMS,
-        idCardPhoto: newUser.idCardPhoto,
-        passportPhoto: newUser.passportPhoto,
-      },
+      // data: {
+      //   _id: newUser._id,
+      //   username: newUser.username,
+      //   email: newUser.email,
+      //   contactNumber: newUser.contactNumber,
+      //   employeeID: newUser.employeeID,
+      //   assetName: newUser.assetName,
+      //   department: newUser.department,
+      //   roleInRTMS: newUser.roleInRTMS,
+      //   idCardPhoto: newUser.idCardPhoto,
+      //   passportPhoto: newUser.passportPhoto,
+      // },
     });
   } catch (error) {
     return res.status(500).json({
@@ -404,7 +404,7 @@ export const rejectUserByManager = async (req, res) => {
         success: false,
         message: "user ID is required",
       });
-    };
+    }
 
     const user = await Users.findOne({ employeeID: employeeID });
 
