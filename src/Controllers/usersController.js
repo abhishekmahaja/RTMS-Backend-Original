@@ -552,20 +552,20 @@ export const RegistrationStatusUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Data fetch successfull!",
-      // data: {
-      //   employeeID: user.employeeID,
-      //   username: user.username,
-      //   email: user.email,
-      //   contactNumber: user.contactNumber,
-      //   assetName: user.assetName,
-      //   department: user.department,
-      //   roleInRTMS: user.roleInRTMS,
-      //   idCardPhoto: user.idCardPhoto,
-      //   passportPhoto: user.passportPhoto,
-      //   isApprovedByManager: user.isApprovedByManager,
-      //   isApprovedByOwner: user.isApprovedByOwner,
-      //   status: statusMessage,
-      // },
+      data: {
+        employeeID: user.employeeID,
+        username: user.username,
+        email: user.email,
+        contactNumber: user.contactNumber,
+        assetName: user.assetName,
+        department: user.department,
+        roleInRTMS: user.roleInRTMS,
+        idCardPhoto: user.idCardPhoto,
+        passportPhoto: user.passportPhoto,
+        isApprovedByManager: user.isApprovedByManager,
+        isApprovedByOwner: user.isApprovedByOwner,
+        status: statusMessage,
+      },
     });
   } catch (error) {
     return res.status(500).json({

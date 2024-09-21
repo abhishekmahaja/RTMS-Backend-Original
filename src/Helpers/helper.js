@@ -198,7 +198,7 @@ export const sendPasswordToUser = async (user) => {
     await transporter.sendMail(mailOptions);
 
     // Send SMS
-    await twilioClient.messages.create(smsOptions);
+    // await twilioClient.messages.create(smsOptions);
   } catch (error) {
     console.error("Error sending password:", error);
     throw new Error("Failed to send password");
@@ -251,19 +251,22 @@ const generatePassword = () => {
 };
 
 // Add Well Function to send the email with dynamic content
-export const sendWellNotificationToOwner = async (ownerToEmail, subject, htmlContent) => {
+export const sendWellNotificationToOwner = async (
+  ownerToEmail,
+  subject,
+  htmlContent
+) => {
   try {
     const ownerWellSendOption = {
       from: process.env.AUTH_EMAIL,
       to: ownerToEmail,
-      subject: subject,  // Dynamic subject
+      subject: subject, // Dynamic subject
       html: htmlContent, // Dynamic HTML content
     };
-    
+
     await transporter.sendMail(ownerWellSendOption);
     // console.log("Mail sent successfully to Owner");
   } catch (error) {
     console.log("Mail not sent to Owner", error);
   }
 };
-
