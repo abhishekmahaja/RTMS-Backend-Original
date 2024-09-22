@@ -13,6 +13,7 @@ import {
   getNotApprovalOwnerUser,
   rejectUserByManager,
   rejectUserByOwner,
+  createNewOrganization,
 } from "../Controllers/usersController.js";
 import {
   isManager,
@@ -41,5 +42,7 @@ router.post("/send-otp-login", sendOTPLogin);
 router.post("/login", loginUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+//ADMIN PAGE ROUTES
+router.post("/create-new-organization", createNewOrganization);
 
 export default router;

@@ -270,3 +270,11 @@ export const sendWellNotificationToOwner = async (
     console.log("Mail not sent to Owner", error);
   }
 };
+
+//AMIN PAGE HELPER FUNCTION
+
+//Send Org SETUP To User
+export const sendNewCreateOrganization = async (user) => {
+  try {
+  } catch (error) {}
+};
