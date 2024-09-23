@@ -56,8 +56,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Role in RTMS is required"],
       enum: {
-        values: ["manager", "owner", "employee"],
-        message: "Role must be either 'manager', 'owner', or 'employee'.",
+        values: ["manager", "owner", "employee", "admin"],
+        message: "Role must be either 'manager', 'owner', or 'employee', 'admin'.",
       },
       default: "employee",
     },
