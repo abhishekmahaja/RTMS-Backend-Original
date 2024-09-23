@@ -90,3 +90,20 @@ export const organizationGetOneData = async (req, res) => {
     });
   }
 };
+
+//admin create Organization
+export const createOragnization = async (req, res) => {
+  try {
+    const { email, organizationName } = req.body;
+
+    //checking if all required
+    if (!email || !organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "All Fields are required",
+      });
+    }
+
+    
+  } catch (error) {}
+};

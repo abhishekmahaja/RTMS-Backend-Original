@@ -869,11 +869,3 @@ export const resetPassword = async (req, res) => {
     });
   }
 };
-
-//HERE CODE START ADMIN PAGE
-
-//register Company
-export const createNewOrganization = async (req, res) => {
-  try {
-  } catch (error) {}
-};

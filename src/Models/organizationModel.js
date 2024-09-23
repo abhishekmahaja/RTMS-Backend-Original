@@ -4,6 +4,12 @@ const organizationSchema = new mongoose.Schema({
   organizationName: {
     type: String,
     required: true, 
+    unique: true,
+  },
+  username: {
+    typr: String,
+    require: true,
+    unique: true,
   },
   address: {
     type: String,
