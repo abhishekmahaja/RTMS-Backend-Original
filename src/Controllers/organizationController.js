@@ -205,7 +205,7 @@ export const generateOtpOragnization = async (req, res) => {
 //Admin Create Organization
 export const createOrganization = async (req, res) => {
   try {
-    const {organizationName, } = req.body;
+    const {organizationName,  } = req.body;
   } catch (error) {
     
   }
