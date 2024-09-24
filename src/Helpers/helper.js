@@ -274,7 +274,31 @@ export const sendWellNotificationToOwner = async (
 //AMIN PAGE HELPER FUNCTION
 
 //Send Org SETUP To User
-export const sendNewCreateOrganization = async (user) => {
+export const sendNewCreateOrganization = async (
+  organizationName,
+  username,
+  password,
+  contactNumber,
+  email,
+) => {
   try {
-  } catch (error) {}
+    const OrgOwnerMailOptions = {
+      from: process.env.ADMIN_EMAIL,
+      to: managerEmail,
+      subject: "New Organization Created! detail Given",
+      html: `<p>A new Organization has been Created. :Organization details:</p>
+           <ul>
+             <li>Username: ${username}</li>
+             <li>Email: ${email}</li>
+             <li>Contact Number: ${contactNumber}</li>
+             <li>Organization Name: ${organizationName}</li>
+             <li>Password: ${password}</li>
+           </ul>
+           <p>Please review.</p>`,
+    };
+
+    await transporter.sendMail(OrgOwnerMailOptions);
+  } catch (err) {
+    console.log("Mail not send to Org Owner");
+  }
 };

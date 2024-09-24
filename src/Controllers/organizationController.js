@@ -1,5 +1,10 @@
-import { sendOTPVerification } from "../Helpers/helper.js";
+import {
+  sendNewCreateOrganization,
+  sendOTPVerification,
+} from "../Helpers/helper.js";
+import bcrypt from "bcryptjs";
 import Organization from "../Models/organizationModel.js";
+import otpGenerator from "otp-generator";
 import OTP from "../Models/OTP-model.js";
 
 // organization Add Data APi
@@ -96,13 +101,6 @@ export const organizationGetOneData = async (req, res) => {
 //admin Generate Otp for Create Organization
 export const generateOtpOragnization = async (req, res) => {
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({
-        success: false,
-        message: "Method Not Allowed! Please use Post Method",
-      });
-    }
-
     const { email, contactNumber } = req.body;
 
     //checking if all required
@@ -131,6 +129,15 @@ export const generateOtpOragnization = async (req, res) => {
         success: false,
         message:
           "Contact number must be in the format '+91XXXXXXXXXX' and include the '+91' prefix without any Space.",
+      });
+    }
+
+    //check if organization is already present
+    const checkOrganizationPresent = await Organization.findOne({ email });
+    if (!checkOrganizationPresent) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Already Present!",
       });
     }
 
@@ -174,10 +181,10 @@ export const generateOtpOragnization = async (req, res) => {
 
     //create new OTP record
     const newOTP = await OTP.create({
-      emailOtp,
-      // contactOtp,
       email,
       contactNumber,
+      emailOtp,
+      contactOtp: emailOtp,
     });
 
     //send OTP via Email and SMS
@@ -205,8 +212,118 @@ export const generateOtpOragnization = async (req, res) => {
 //Admin Create Organization
 export const createOrganization = async (req, res) => {
   try {
-    const {organizationName,  } = req.body;
+    const {
+      organizationName,
+      username,
+      password,
+      email,
+      contactNumber,
+      // contactOtp,
+      emailOtp,
+    } = req.body;
+
+    //checking if all fileds are provided
+    if (
+      !organizationName ||
+      !username ||
+      !password ||
+      !email ||
+      !contactNumber ||
+      // !contactOtp ||
+      !emailOtp
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All Fields are Required",
+      });
+    }
+
+    //checking if Organization is Allready created
+    const existingOrganization = await Organization.findOne({
+      $or: [{ email }, { username }, { organizationName }],
+    });
+    if (existingOrganization) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Allready Created",
+      });
+    }
+
+    //Fetching the most Recent OTP
+    const recentOtp = await OTP.findOne({ email }).sort({ createAt: -1 });
+
+    if (!recentOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP not Found",
+      });
+    }
+
+    //validing OTPs
+    if (
+      // contactOtp !== recentOtp.contactOtp ||
+      emailOtp !== recentOtp.emailOtp
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Provided OTPs do not match the most recent OTPs",
+      });
+    }
+    recentOtp.deleteOne();
+
+    //organization Created by Admin
+    const newOrganization = await Organization.create({
+      username,
+      organizationName,
+    });
+
+    //hash the password
+    const saltRounds = 10; // Number of salt rounds for bcrypt
+
+    // Creating new user for organization
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Creating new user for organization
+    const newUser = await Users.create({
+      username,
+      email,
+      contactNumber,
+      organizationName,
+      roleInRTMS: "owner",
+      password: hashedPassword,
+    });
+
+    //send Notification to Owner to created organization
+    await sendNewCreateOrganization(
+      newOrganization.username,
+      newOrganization.organizationName,
+      newUser.contactNumber,
+      newUser.email,
+      newUser.password,
+      user
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Organization Created successfully.",
+      data: {
+        _id: newOrganization._id,
+        username: newOrganization.username,
+        email: newUser.email,
+        contactNumber: newUser.contactNumber,
+        organizationName: newOrganization.organizationName,
+        password: newUser.password, //after check api remove this
+        // employeeID: newOrganization.employeeID,
+        // department: newOrganization.department,
+        // roleInRTMS: newOrganization.roleInRTMS,
+        // idCardPhoto: newOrganization.idCardPhoto,
+        // passportPhoto: newOrganization.passportPhoto,
+      },
+    });
   } catch (error) {
-    
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to register user",
+    });
   }
-}
+};
