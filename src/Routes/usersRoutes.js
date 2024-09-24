@@ -13,7 +13,6 @@ import {
   getNotApprovalOwnerUser,
   rejectUserByManager,
   rejectUserByOwner,
-  createNewOrganization,
 } from "../Controllers/usersController.js";
 import {
   isManager,
