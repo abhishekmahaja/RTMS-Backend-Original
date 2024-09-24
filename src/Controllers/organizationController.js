@@ -5,6 +5,7 @@ import {
 import bcrypt from "bcryptjs";
 import Organization from "../Models/organizationModel.js";
 import otpGenerator from "otp-generator";
+import Users from "../Models/userModel.js";
 import OTP from "../Models/OTP-model.js";
 
 // organization Add Data APi
@@ -98,6 +99,8 @@ export const organizationGetOneData = async (req, res) => {
   }
 };
 
+//ADMIN TO CREATE ORGANIZATION
+
 //admin Generate Otp for Create Organization
 export const generateOtpOragnization = async (req, res) => {
   try {
@@ -134,7 +137,7 @@ export const generateOtpOragnization = async (req, res) => {
 
     //check if organization is already present
     const checkOrganizationPresent = await Organization.findOne({ email });
-    if (!checkOrganizationPresent) {
+    if (checkOrganizationPresent) {
       return res.status(400).json({
         success: false,
         message: "Organization Already Present!",
@@ -184,7 +187,7 @@ export const generateOtpOragnization = async (req, res) => {
       email,
       contactNumber,
       emailOtp,
-      contactOtp: emailOtp,
+      contactOtp: emailOtp, // Using the same OTP for both email and contact number
     });
 
     //send OTP via Email and SMS
@@ -259,6 +262,10 @@ export const createOrganization = async (req, res) => {
       });
     }
 
+    // Log recent OTP and email OTP for debugging
+    console.log("Recent OTP from DB:", recentOtp.emailOtp);
+    console.log("Provided email OTP:", emailOtp);
+
     //validing OTPs
     if (
       // contactOtp !== recentOtp.contactOtp ||
@@ -279,8 +286,6 @@ export const createOrganization = async (req, res) => {
 
     //hash the password
     const saltRounds = 10; // Number of salt rounds for bcrypt
-
-    // Creating new user for organization
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Creating new user for organization
@@ -297,10 +302,10 @@ export const createOrganization = async (req, res) => {
     await sendNewCreateOrganization(
       newOrganization.username,
       newOrganization.organizationName,
-      newUser.contactNumber,
-      newUser.email,
-      newUser.password,
-      user
+      newOrganization.contactNumber,
+      newOrganization.email,
+      newOrganization.password,
+      newUser
     );
 
     res.status(201).json({
@@ -309,15 +314,9 @@ export const createOrganization = async (req, res) => {
       data: {
         _id: newOrganization._id,
         username: newOrganization.username,
-        email: newUser.email,
-        contactNumber: newUser.contactNumber,
+        email: newOrganization.email,
+        contactNumber: newOrganization.contactNumber,
         organizationName: newOrganization.organizationName,
-        password: newUser.password, //after check api remove this
-        // employeeID: newOrganization.employeeID,
-        // department: newOrganization.department,
-        // roleInRTMS: newOrganization.roleInRTMS,
-        // idCardPhoto: newOrganization.idCardPhoto,
-        // passportPhoto: newOrganization.passportPhoto,
       },
     });
   } catch (error) {

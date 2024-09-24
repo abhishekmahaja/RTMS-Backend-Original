@@ -19,6 +19,6 @@ organizationRouter.get(
   organizationGetOneData
 );
 organizationRouter.post("/generate-otp-oragnization", generateOtpOragnization);
-organizationRouter.post("create-organization", createOrganization);
+organizationRouter.post("/create-organization", createOrganization);
 
 export default organizationRouter;
