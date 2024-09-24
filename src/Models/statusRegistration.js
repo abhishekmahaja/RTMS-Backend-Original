@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
     email: String,
     contactNumber: String,
     employeeID: String,
-    assetName: String,
+    organizationName: String,
     department: String,
     roleInRTMS: String,
     idCardPhoto: String,

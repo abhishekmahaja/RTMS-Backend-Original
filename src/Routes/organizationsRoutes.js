@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createOragnization,
+  generateOtpOragnization,
   organizationAddData,
   organizationGetOneData,
   organizationUpdateData,
@@ -17,6 +18,6 @@ organizationRouter.get(
   "/organization-get-one-data/:id",
   organizationGetOneData
 );
-organizationRouter.post("/create-oragnization", createOragnization);
+organizationRouter.post("/generate-otp-oragnization", generateOtpOragnization);
 
 export default organizationRouter;

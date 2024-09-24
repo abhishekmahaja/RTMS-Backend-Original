@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema(
           "Employee ID must be 5-20 characters long and can only contain letters and numbers.",
       },
     },
-    assetName: {
+    organizationName: {
       type: String,
       required: [true, "Asset name is required"],
     },

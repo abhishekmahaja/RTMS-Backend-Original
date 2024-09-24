@@ -142,7 +142,7 @@ export const registerUser = async (req, res) => {
       email,
       contactNumber,
       employeeID,
-      assetName,
+      organizationName,
       department,
       roleInRTMS,
       // contactOtp,
@@ -160,7 +160,7 @@ export const registerUser = async (req, res) => {
       !email ||
       !contactNumber ||
       !employeeID ||
-      !assetName ||
+      !organizationName ||
       !department ||
       !roleInRTMS ||
       // !contactOtp ||
@@ -240,7 +240,7 @@ export const registerUser = async (req, res) => {
       email,
       contactNumber,
       employeeID,
-      assetName,
+      organizationName,
       department,
       roleInRTMS,
       isApprovedByManager: roleInRTMS === "manager" ? true : false,
@@ -268,7 +268,7 @@ export const registerUser = async (req, res) => {
       //   email: newUser.email,
       //   contactNumber: newUser.contactNumber,
       //   employeeID: newUser.employeeID,
-      //   assetName: newUser.assetName,
+      //   organizationName: newUser.organizationName,
       //   department: newUser.department,
       //   roleInRTMS: newUser.roleInRTMS,
       //   idCardPhoto: newUser.idCardPhoto,
@@ -557,7 +557,7 @@ export const RegistrationStatusUser = async (req, res) => {
         username: user.username,
         email: user.email,
         contactNumber: user.contactNumber,
-        assetName: user.assetName,
+        organizationName: user.organizationName,
         department: user.department,
         roleInRTMS: user.roleInRTMS,
         idCardPhoto: user.idCardPhoto,
