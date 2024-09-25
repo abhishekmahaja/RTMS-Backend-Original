@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  addDepartment,
   createOrganization,
   departmentBaseOrgNameDropdown,
   generateOtpOragnization,
@@ -24,5 +25,6 @@ organizationRouter.post("/generate-otp-oragnization", generateOtpOragnization);
 organizationRouter.post("/create-organization", createOrganization);
 organizationRouter.get("/organization-drop-down", organizationDropDown);
 organizationRouter.post("/department-base-org-name-dropdown", departmentBaseOrgNameDropdown);
+organizationRouter.post("/add-department", addDepartment);
 
 export default organizationRouter;

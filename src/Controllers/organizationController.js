@@ -8,19 +8,53 @@ import otpGenerator from "otp-generator";
 import Users from "../Models/userModel.js";
 import OTP from "../Models/OTP-model.js";
 
+//ORGANIZATION CREATE
+
 // organization Add Data APi
 export const organizationAddData = async (req, res) => {
   try {
     const organizationAdd = await Organization.create(req.body);
     res.json({
       success: true,
-      message: "Data Update Successfully",
+      message: "Data Add Successfully",
       data: organizationAdd,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: error.message || "Error updating organization data",
+    });
+  }
+};
+
+//Add department
+export const addDepartment = async (req, res) => {
+  try {
+    const { organizationName, departments } = req.body;
+
+    const departmentOrganization = await Organization.findOne({
+      organizationName
+    });
+
+    if (!departmentOrganization) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Not Paresent",
+      });
+    }
+
+    departmentOrganization.departments.push(departments);
+    await departmentOrganization.save();
+
+    res.json({
+      success: true,
+      message: "Department Add Successfully",
+      data: departmentOrganization,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error To Add Department",
     });
   }
 };
