@@ -265,8 +265,8 @@ export const createOrganization = async (req, res) => {
     }
 
     // Log recent OTP and email OTP for debugging
-    console.log("Recent OTP from DB:", recentOtp.emailOtp);
-    console.log("Provided email OTP:", emailOtp);
+    // console.log("Recent OTP from DB:", recentOtp.emailOtp);
+    // console.log("Provided email OTP:", emailOtp);
 
     //validing OTPs
     if (
@@ -291,6 +291,10 @@ export const createOrganization = async (req, res) => {
     const saltRounds = 10; // Number of salt rounds for bcrypt
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // console.log(
+    //   "employee id",
+    //   `${organizationName.substring(0, 4).toUpperCase()}_OWN`
+    // );
     // Creating new user for organization
     const newUser = await Users.create({
       username,
@@ -298,6 +302,7 @@ export const createOrganization = async (req, res) => {
       contactNumber,
       organizationName,
       roleInRTMS: "owner",
+      employeeID: `${organizationName.substring(0, 4).toUpperCase()}_OWN`,
       password: hashedPassword,
       isApprovedByManager: true,
       isApprovedByOwner: true,

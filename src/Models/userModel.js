@@ -39,12 +39,12 @@ const userSchema = new mongoose.Schema(
       required: [true, "Employee ID is required"],
       unique: true,
       validate: {
-        validator: (v) => /^[a-zA-Z0-9]{5,20}$/.test(v),
+        validator: (v) => /^[a-zA-Z0-9_]{5,20}$/.test(v),
         message:
-          "Employee ID must be 5-20 characters long and can only contain letters and numbers.",
+          "Employee ID must be 5-20 characters long and can only contain letters, numbers, and underscores.",
       },
-      default: "EMPloyee1",
     },
+
     organizationName: {
       type: String,
       required: [true, "Asset name is required"],
