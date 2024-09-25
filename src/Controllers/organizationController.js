@@ -8,8 +8,6 @@ import otpGenerator from "otp-generator";
 import Users from "../Models/userModel.js";
 import OTP from "../Models/OTP-model.js";
 
-//ORGANIZATION CREATE
-
 //Add department
 export const addDepartment = async (req, res) => {
   try {
@@ -62,6 +60,116 @@ export const addDepartment = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "An error occurred while adding the department",
+    });
+  }
+};
+
+//Update Department
+export const updateDepartment = async (req, res) => {
+  try {
+    const { organizationName, oldDepartmentName, newDepartmentName } = req.body;
+
+    // Validate required fields
+    if (!organizationName || !oldDepartmentName || !newDepartmentName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name, old department name, and new department name are required.",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found.",
+      });
+    }
+
+    // Find the department by old name
+    const department = organization.departments.find(
+      (dep) => dep.departmentName === oldDepartmentName
+    );
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${oldDepartmentName} not found in organization ${organizationName}.`,
+      });
+    }
+
+    // Update the department name
+    department.departmentName = newDepartmentName;
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Department updated successfully from ${oldDepartmentName} to ${newDepartmentName}.`,
+      data: organization.departments,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the department.",
+    });
+  }
+};
+
+//delete department
+export const deleteDepartment = async (req, res) => {
+  try {
+    const { organizationName, departmentName } = req.body;
+
+    // Validate required fields
+    if (!organizationName || !departmentName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name and department name are required.",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found.",
+      });
+    }
+
+    // Find the index of the department to delete
+    const departmentIndex = organization.departments.findIndex(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (departmentIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${departmentName} not found in organization ${organizationName}.`,
+      });
+    }
+
+    // Remove the department from the organization
+    organization.departments.splice(departmentIndex, 1);
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Department ${departmentName} deleted successfully from organization ${organizationName}.`,
+      data: organization.departments,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while deleting the department.",
     });
   }
 };
@@ -121,6 +229,185 @@ export const addPosition = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "An error occurred while updating positions",
+    });
+  }
+};
+
+//get Position api
+export const getPositions = async (req, res) => {
+  try {
+    const { organizationName, departmentName } = req.query;
+
+    // Validate required fields
+    if (!organizationName || !departmentName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name and department name are required.",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found.",
+      });
+    }
+
+    // Find the department within the organization
+    const department = organization.departments.find(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${departmentName} not found in organization ${organizationName}.`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: department.positions,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching positions.",
+    });
+  }
+};
+
+//Update Position
+export const updatePosition = async (req, res) => {
+  try {
+    const { organizationName, departmentName, oldPositionName, newPositionName } = req.body;
+
+    // Validate required fields
+    if (!organizationName || !departmentName || !oldPositionName || !newPositionName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name, department name, old position name, and new position name are required.",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found.",
+      });
+    }
+
+    // Find the department within the organization
+    const department = organization.departments.find(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${departmentName} not found in organization ${organizationName}.`,
+      });
+    }
+
+    // Find the position within the department
+    const positionIndex = department.positions.findIndex(
+      (pos) => pos === oldPositionName
+    );
+
+    if (positionIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: `Position ${oldPositionName} not found in department ${departmentName}.`,
+      });
+    }
+
+    // Update the position name
+    department.positions[positionIndex] = newPositionName;
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Position updated from ${oldPositionName} to ${newPositionName}.`,
+      data: department.positions,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the position.",
+    });
+  }
+};
+
+//delete position
+export const deletePosition = async (req, res) => {
+  try {
+    const { organizationName, departmentName, positionName } = req.body;
+
+    // Validate required fields
+    if (!organizationName || !departmentName || !positionName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name, department name, and position name are required.",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found.",
+      });
+    }
+
+    // Find the department within the organization
+    const department = organization.departments.find(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${departmentName} not found in organization ${organizationName}.`,
+      });
+    }
+
+    // Find the index of the position to delete
+    const positionIndex = department.positions.findIndex(
+      (pos) => pos === positionName
+    );
+
+    if (positionIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: `Position ${positionName} not found in department ${departmentName}.`,
+      });
+    }
+
+    // Remove the position from the department
+    department.positions.splice(positionIndex, 1);
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Position ${positionName} deleted successfully from department ${departmentName}.`,
+      data: department.positions,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while deleting the position.",
     });
   }
 };
@@ -187,6 +474,177 @@ export const addApprovalChain = async (req, res) => {
   }
 };
 
+//Get Approval chain
+export const getApprovalChain = async (req, res) => {
+  try {
+    const { organizationName, departmentName } = req.query;
+
+    // Check if all fields are provided
+    if (!organizationName || !departmentName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name and department name are required",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    // Find the department by name
+    const department = organization.departments.find(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${departmentName} not found in the organization`,
+      });
+    }
+
+    // Return the approval chain
+    if (!department.approvalChain) {
+      return res.status(404).json({
+        success: false,
+        message: `No approval chain found for department ${departmentName}`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: department.approvalChain,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching the approval chain",
+    });
+  }
+};
+
+//Update Approval chain
+export const updateApprovalChain = async (req, res) => {
+  try {
+    const { organizationName, departmentName, action, level1, level2 } = req.body;
+
+    // Check if all fields are provided
+    if (!organizationName || !departmentName || !action || !level1 || !level2) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Organization name, department name, action, level1, and level2 are required",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    // Find the department by name
+    const department = organization.departments.find(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${departmentName} not found in the organization`,
+      });
+    }
+
+    // Update the approval chain
+    department.approvalChain = { action, level1, level2 };
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Approval chain updated successfully for department ${departmentName}`,
+      data: department.approvalChain,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the approval chain",
+    });
+  }
+};
+
+//Delete Approval chain
+export const deleteApprovalChain = async (req, res) => {
+  try {
+    const { organizationName, departmentName } = req.body;
+
+    // Check if all fields are provided
+    if (!organizationName || !departmentName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name and department name are required",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    // Find the department by name
+    const department = organization.departments.find(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${departmentName} not found in the organization`,
+      });
+    }
+
+    // Check if an approval chain exists
+    if (!department.approvalChain) {
+      return res.status(404).json({
+        success: false,
+        message: `No approval chain found for department ${departmentName}`,
+      });
+    }
+
+    // Delete the approval chain
+    department.approvalChain = undefined;
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Approval chain deleted successfully for department ${departmentName}`,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while deleting the approval chain",
+    });
+  }
+};
+
 // Organization Add Data 
 export const organizationAddData = async (req, res) => {
   try {
@@ -202,7 +660,6 @@ export const organizationAddData = async (req, res) => {
       phone,
       fax,
       email,
-       // Expecting an array of departments
     } = req.body;
 
     // Validate required fields
@@ -270,73 +727,103 @@ export const organizationAddData = async (req, res) => {
 // Organization Update Data API
 export const organizationUpdateData = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { organizationName } = req.body;
 
-    if (!id) {
+    const {
+      address,
+      city,
+      state,
+      country,
+      pinCode,
+      phone,
+      fax,
+      email,
+    } = req.body;
+
+    // Validate required fields
+    if (!organizationName) {
       return res.status(400).json({
         success: false,
-        message: "Enter The Id of Organization",
+        message: "Organization name is required.",
       });
     }
 
-    const organizationUpdate = await Organization.findOneAndUpdate(
-      { _id: id },
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
 
-    if (!organizationUpdate) {
+    if (!organization) {
       return res.status(404).json({
         success: false,
-        message: "Organization Not Found",
+        message: "Organization not found.",
       });
     }
 
-    res.json({
+    // Update organization details
+    if (address) organization.address = address;
+    if (city) organization.city = city;
+    if (state) organization.state = state;
+    if (country) organization.country = country;
+    if (pinCode) organization.pinCode = pinCode;
+    if (phone) organization.phone = phone;
+    if (fax) organization.fax = fax;
+    if (email) organization.email = email;
+
+    await organization.save();
+
+    // Send a success response
+    return res.status(200).json({
       success: true,
-      message: "Data Update Successfully",
-      data: organizationUpdate,
+      message: "Organization updated successfully.",
+      data: organization,
     });
   } catch (error) {
-    res.status(500).json({
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
       success: false,
-      message: error.message || "Error updating organization data",
+      message: "Failed to update organization.",
     });
   }
 };
 
 // Organization Get Data API
-export const organizationGetOneData = async (req, res) => {
+export const organizationGetData = async (req, res) => {
   try {
-    const { id } = req.params;
-    const organizationUpdate = await Organization.findById(
-      { _id: id },
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const { organizationName } = req.query; // Assuming you're using query params
 
-    if (!organizationUpdate) {
-      return res.status(404).json({
+    // Validate required fields
+    if (!organizationName) {
+      return res.status(400).json({
         success: false,
-        message: "Organization Not Found",
+        message: "Organization name is required.",
       });
     }
 
-    res.json({
+    // Fetch the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found.",
+      });
+    }
+
+    // Send a success response
+    return res.status(200).json({
       success: true,
-      message: "Data Update Successfully",
-      data: organizationUpdate,
+      message: "Organization data fetched successfully.",
+      data: organization,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: error.message || "Error updating organization data",
+      message: "Failed to fetch organization data.",
     });
   }
 };
@@ -600,7 +1087,7 @@ export const organizationDropDown = async (req, res) => {
   }
 };
 
-//Department Dropdown on the base of orgnaziation name
+//Department Dropdown on the base of orgnaziation name (also get department api)
 export const departmentBaseOrgNameDropdown = async (req, res) => {
   try {
     const { organizationName } = req.body;
