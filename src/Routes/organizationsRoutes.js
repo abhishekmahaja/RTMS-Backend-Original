@@ -1,6 +1,8 @@
 import express from "express";
 import {
+  addApprovalChain,
   addDepartment,
+  addPosition,
   createOrganization,
   departmentBaseOrgNameDropdown,
   generateOtpOragnization,
@@ -24,7 +26,12 @@ organizationRouter.get(
 organizationRouter.post("/generate-otp-oragnization", generateOtpOragnization);
 organizationRouter.post("/create-organization", createOrganization);
 organizationRouter.get("/organization-drop-down", organizationDropDown);
-organizationRouter.post("/department-base-org-name-dropdown", departmentBaseOrgNameDropdown);
+organizationRouter.post(
+  "/department-base-org-name-dropdown",
+  departmentBaseOrgNameDropdown
+);
 organizationRouter.post("/add-department", addDepartment);
+organizationRouter.post("/add-position", addPosition);
+organizationRouter.post("/add-approval-chain", addApprovalChain);
 
 export default organizationRouter;

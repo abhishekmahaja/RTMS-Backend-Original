@@ -10,51 +10,259 @@ import OTP from "../Models/OTP-model.js";
 
 //ORGANIZATION CREATE
 
-// organization Add Data APi
-export const organizationAddData = async (req, res) => {
+//Add department
+export const addDepartment = async (req, res) => {
   try {
-    const organizationAdd = await Organization.create(req.body);
-    res.json({
+    const { organizationName, departmentName } = req.body;
+
+    // Check if all fields are provided
+    if (!organizationName || !departmentName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name and department name are required",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    console.log(organization);
+    // Check if the department already exists
+    const departmentExists = organization.departments.some(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (departmentExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Department already exists in this organization",
+      });
+    }
+
+    // Add the new department
+    organization.departments.push({ departmentName, positions: [] });
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(201).json({
       success: true,
-      message: "Data Add Successfully",
-      data: organizationAdd,
+      message: `Department ${departmentName} added successfully to organization ${organizationName}`,
+      data: organization.departments,
     });
   } catch (error) {
-    res.status(500).json({
+    console.log(error);
+    return res.status(500).json({
       success: false,
-      message: error.message || "Error updating organization data",
+      message: error.message || "An error occurred while adding the department",
     });
   }
 };
 
-//Add department
-export const addDepartment = async (req, res) => {
+//Add Position on the base of department
+export const addPosition = async (req, res) => {
   try {
-    const { organizationName, departments } = req.body;
+    const { organizationName, departmentName, positions } = req.body;
 
-    const departmentOrganization = await Organization.findOne({
-      organizationName
-    });
-
-    if (!departmentOrganization) {
+    // Check if all fields are provided
+    if (!organizationName || !departmentName || !positions) {
       return res.status(400).json({
         success: false,
-        message: "Organization Not Paresent",
+        message:
+          "Organization name, department name, and positions are required",
       });
     }
 
-    departmentOrganization.departments.push(departments);
-    await departmentOrganization.save();
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
 
-    res.json({
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    // Check if the department exists in the organization
+    const departmentIndex = organization.departments.findIndex(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (departmentIndex === -1) {
+      // Department does not exist, add a new department with positions
+      organization.departments.push({
+        departmentName,
+        positions,
+      });
+    } else {
+      // Department exists, update the positions array
+      organization.departments[departmentIndex].positions = [
+        ...organization.departments[departmentIndex].positions,
+        ...positions,
+      ];
+    }
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(200).json({
       success: true,
-      message: "Department Add Successfully",
-      data: departmentOrganization,
+      message: `Positions added/updated for department ${departmentName}`,
+      data: organization.departments,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: error.message || "Error To Add Department",
+      message: error.message || "An error occurred while updating positions",
+    });
+  }
+};
+
+//Add Approval chain on the basis of department
+export const addApprovalChain = async (req, res) => {
+  try {
+    const { organizationName, departmentName, action, level1, level2 } =
+      req.body;
+
+    // Check if all fields are provided
+    if (!organizationName || !departmentName || !action || !level1 || !level2) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "All fields (organizationName, departmentName, action, level1, level2) are required",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    // Find the department by name
+    const department = organization.departments.find(
+      (dep) => dep.departmentName === departmentName
+    );
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        message: `Department ${departmentName} not found in the organization`,
+      });
+    }
+
+    // Update the approval chain for the department
+    department.approvalChain = {
+      action,
+      level1,
+      level2,
+    };
+
+    // Save the updated organization
+    await organization.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Approval chain added/updated successfully for department ${departmentName}`,
+      data: organization.departments,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message:
+        error.message ||
+        "An error occurred while adding/updating the approval chain",
+    });
+  }
+};
+
+// organization Add Data APi
+export const organizationAddData = async (req, res) => {
+  try {
+    // Fetch organizationName and username from request context or a relevant source
+    const { organizationName } = req.body;
+
+    const {
+      address,
+      city,
+      state,
+      country,
+      pinCode,
+      phone,
+      fax,
+      email,
+       // Expecting an array of departments
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !organizationName ||
+      !address ||
+      !city ||
+      !state ||
+      !country ||
+      !pinCode ||
+      !phone ||
+      !email
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required.",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    // Create the new organization
+    organization.address = address,
+    organization.city = city,
+    organization.state = state,
+    organization.country = country,
+    organization.pinCode = pinCode,
+    organization.phone = phone,
+    organization.fax = fax,
+    organization.email = email,
+
+    await organization.save();
+
+    // Send a success response
+    res.status(201).json({
+      success: true,
+      message: "Organization created successfully.",
+      data: organization,
+    });
+  } catch (error) {
+    // Handle validation errors
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    // Handle other errors
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create organization.",
     });
   }
 };

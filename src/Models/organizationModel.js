@@ -1,70 +1,93 @@
 import mongoose from "mongoose";
 
-const organizationSchema = new mongoose.Schema({
-  organizationName: {
+//Department update schema
+const departmentSchema = new mongoose.Schema({
+  departmentName: {
     type: String,
-    required: true,
-    unique: true,
+    required: [true, "Department name is required"],
   },
-  username: {
-    type: String,
-    required: true,
+  positions: {
+    type: [String],
+    default: [],
   },
-  address: {
-    type: String,
-    required: true,
-    default: "abc",
-  },
-  city: {
-    type: String,
-    required: true,
-    default: "abc",
-  },
-  state: {
-    type: String,
-    required: true,
-    default: "avd",
-  },
-  country: {
-    type: String,
-    required: true,
-    default: "sddcd",
-  },
-  pinCode: {
-    type: String,
-    required: true,
-    default: "201555",
-  },
-  phone: {
-    type: String,
-    required: true,
-    default: "+915545547854",
-  },
-  fax: {
-    type: String,
-  },
-  departments: [String],
-  positions: [String],
-  approvalChain: [
-    {
-      action: {
-        type: String,
-        required: true,
-        default: "fgdf",
-      },
-      level1: {
-        type: String,
-        required: true,
-        default: "dsfrsg",
-      },
-      level2: {
-        type: String,
-        required: true,
-        default: "fesrtg",
-      },
+  approvalChain: {
+    action: {
+      type: String,
+      required: true,
+      default: "Review", // Default value for action
     },
-  ],
+    level1: {
+      type: String,
+      required: true,
+      default: "Manager", // Default value for level1
+    },
+    level2: {
+      type: String,
+      required: true,
+      default: "Director", // Default value for level2
+    },
+  },
 });
+
+//organization update schema
+const organizationSchema = new mongoose.Schema(
+  {
+    organizationName: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    username: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+      default: "abc",
+    },
+    city: {
+      type: String,
+      required: true,
+      default: "abc",
+    },
+    state: {
+      type: String,
+      required: true,
+      default: "avd",
+    },
+    country: {
+      type: String,
+      required: true,
+      default: "sddcd",
+    },
+    pinCode: {
+      type: String,
+      required: true,
+      default: "201555",
+    },
+    phone: {
+      type: String,
+      required: true,
+      default: "+915545547854",
+    },
+    fax: {
+      type: String,
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      validate: {
+        validator: (v) => /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i.test(v),
+        message: (props) => `${props.value} is not a valid email address!`,
+      },
+      default: "owner@gmail.com",
+    },
+    departments: [departmentSchema], // Updated with department schema
+  },
+  { timestamps: true }
+);
 
 const Organization = mongoose.model("Organization", organizationSchema);
 
