@@ -66,7 +66,7 @@ export const addDepartment = async (req, res) => {
   }
 };
 
-//Add Position on the base of department
+//Add Position 
 export const addPosition = async (req, res) => {
   try {
     const { organizationName, departmentName, positions } = req.body;
@@ -125,7 +125,7 @@ export const addPosition = async (req, res) => {
   }
 };
 
-//Add Approval chain on the basis of department
+//Add Approval chain 
 export const addApprovalChain = async (req, res) => {
   try {
     const { organizationName, departmentName, action, level1, level2 } =
@@ -187,7 +187,7 @@ export const addApprovalChain = async (req, res) => {
   }
 };
 
-// organization Add Data APi
+// Organization Add Data 
 export const organizationAddData = async (req, res) => {
   try {
     // Fetch organizationName and username from request context or a relevant source
