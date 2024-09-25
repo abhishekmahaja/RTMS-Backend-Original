@@ -59,14 +59,16 @@ const userSchema = new mongoose.Schema(
       required: [true, "Role in RTMS is required"],
       enum: {
         values: ["manager", "owner", "employee", "admin"],
-        message: "Role must be either 'manager', 'owner', or 'employee', 'admin'.",
+        message:
+          "Role must be either 'manager', 'owner', or 'employee', 'admin'.",
       },
       default: "employee",
     },
     idCardPhoto: {
       type: String,
       required: [true, "ID card photo is required"],
-      default: "https://www.shutterstock.com/shutterstock/photos/1227173818/display_1500/stock-vector-driver-license-with-male-photo-identification-or-id-card-template-vector-illustration-1227173818.jpg",
+      default:
+        "https://iconape.com/wp-content/files/cg/369857/svg/id-card-logo-icon-png-svg.png",
     },
     passportPhoto: {
       type: String,
