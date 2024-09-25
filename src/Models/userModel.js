@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema(
         message:
           "Employee ID must be 5-20 characters long and can only contain letters and numbers.",
       },
+      default: "EMPloyee1",
     },
     organizationName: {
       type: String,
@@ -51,6 +52,7 @@ const userSchema = new mongoose.Schema(
     department: {
       type: String,
       required: [true, "Department is required"],
+      default: "DEP1",
     },
     roleInRTMS: {
       type: String,
@@ -64,10 +66,12 @@ const userSchema = new mongoose.Schema(
     idCardPhoto: {
       type: String,
       required: [true, "ID card photo is required"],
+      default: "https://www.shutterstock.com/shutterstock/photos/1227173818/display_1500/stock-vector-driver-license-with-male-photo-identification-or-id-card-template-vector-illustration-1227173818.jpg",
     },
     passportPhoto: {
       type: String,
       required: [true, "Passport photo is required"],
+      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
     },
     isApprovedByManager: {
       type: Boolean,

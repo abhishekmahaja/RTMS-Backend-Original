@@ -275,16 +275,16 @@ export const sendWellNotificationToOwner = async (
 
 //Send Org SETUP To User
 export const sendNewCreateOrganization = async (
-  organizationName,
   username,
-  password,
+  organizationName,
   contactNumber,
   email,
+  password,
 ) => {
   try {
     const OrgOwnerMailOptions = {
       from: process.env.ADMIN_EMAIL,
-      to: managerEmail,
+      to: email,
       subject: "New Organization Created! detail Given",
       html: `<p>A new Organization has been Created. :Organization details:</p>
            <ul>
@@ -299,6 +299,6 @@ export const sendNewCreateOrganization = async (
 
     await transporter.sendMail(OrgOwnerMailOptions);
   } catch (err) {
-    console.log("Mail not send to Org Owner");
+    console.log("Mail not send to Org Owner",err);
   }
 };

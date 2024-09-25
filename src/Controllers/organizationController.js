@@ -182,6 +182,8 @@ export const generateOtpOragnization = async (req, res) => {
     //   contactResult = await OTP.findOne({ contactOtp });
     // }
 
+    console.log("email", emailOtp);
+
     //create new OTP record
     const newOTP = await OTP.create({
       email,
@@ -276,7 +278,8 @@ export const createOrganization = async (req, res) => {
         message: "Provided OTPs do not match the most recent OTPs",
       });
     }
-    recentOtp.deleteOne();
+
+    await OTP.deleteOne({ emailOtp: emailOtp });
 
     //organization Created by Admin
     const newOrganization = await Organization.create({
@@ -296,16 +299,18 @@ export const createOrganization = async (req, res) => {
       organizationName,
       roleInRTMS: "owner",
       password: hashedPassword,
+      isApprovedByManager: true,
+      isApprovedByOwner: true,
     });
 
     //send Notification to Owner to created organization
     await sendNewCreateOrganization(
       newOrganization.username,
       newOrganization.organizationName,
-      newOrganization.contactNumber,
-      newOrganization.email,
-      newOrganization.password,
-      newUser
+      newUser.contactNumber,
+      newUser.email,
+      newUser.password
+      // newUser
     );
 
     res.status(201).json({
@@ -323,6 +328,49 @@ export const createOrganization = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to register user",
+    });
+  }
+};
+
+//Organization Dropdown
+export const organizationDropDown = async (req, res) => {
+  try {
+    // Fetch only the 'organizationName' field
+    const organizationName = await Organization.find().select(
+      "organizationName"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "All Organization Name Fetch Successfully",
+      data: organizationName,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error Fetching Organization Name",
+    });
+  }
+};
+
+//Department Dropdown on the base of orgnaziation name
+export const departmentBaseOrgNameDropdown = async (req, res) => {
+  try {
+    const { organizationName } = req.body;
+    const departmentdropdown = await Organization.find({
+      organizationName,
+    }).select("departments");
+
+    res.status(200).json({
+      success: true,
+      message:
+        "All Department Name Fetch Successfully on the base of Organization",
+      data: departmentdropdown,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error Fetching Department Name",
     });
   }
 };

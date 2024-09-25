@@ -1,8 +1,10 @@
 import express from "express";
 import {
   createOrganization,
+  departmentBaseOrgNameDropdown,
   generateOtpOragnization,
   organizationAddData,
+  organizationDropDown,
   organizationGetOneData,
   organizationUpdateData,
 } from "../Controllers/organizationController.js";
@@ -20,5 +22,7 @@ organizationRouter.get(
 );
 organizationRouter.post("/generate-otp-oragnization", generateOtpOragnization);
 organizationRouter.post("/create-organization", createOrganization);
+organizationRouter.get("/organization-drop-down", organizationDropDown);
+organizationRouter.post("/department-base-org-name-dropdown", departmentBaseOrgNameDropdown);
 
 export default organizationRouter;
