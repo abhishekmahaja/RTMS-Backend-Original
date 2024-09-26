@@ -726,7 +726,19 @@ export const loginUser = async (req, res) => {
       // user, //to all user details
       message: "User logged in successfully",
       token,
-      role: user.roleInRTMS,
+      data:{
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        contact: user.contactNumber,
+        employeeID: user.employeeID,
+        organization: user.organizationName,
+        department: user.department,
+        role: user.roleInRTMS,
+        idCard: user.idCardPhoto,
+        passport: user.passportPhoto,
+      }
+      
     });
 
     // Now wait for OTP verification step (implement verification endpoint)
