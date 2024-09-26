@@ -7,6 +7,52 @@ import Organization from "../Models/organizationModel.js";
 import otpGenerator from "otp-generator";
 import Users from "../Models/userModel.js";
 import OTP from "../Models/OTP-model.js";
+import { AwsInstance } from "twilio/lib/rest/accounts/v1/credential/aws.js";
+
+//get organization name and all deta fetch accordinly
+export const getDataBasedOnOrganization = async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: "Username is required",
+      });
+    }
+
+    // Fetch the organization data based on the username
+    const userOrganization = await Organization.findOne({ username });
+
+    if (!userOrganization) {
+      return res.status(404).json({
+        success: false,
+        message: "Username not found",
+      });
+    }
+
+    // Assuming `organizationName` is part of `userOrganization`, adapt this part
+    const { organizationName } = userOrganization;
+    
+    // Return the organization name found for the user
+    if (!organizationName) {
+      return res.status(404).json({
+        success: false,
+        message: `Organization not found for username ${username}`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: organizationName,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching Organization Data",
+    });
+  }
+};
 
 //Add department
 export const addDepartment = async (req, res) => {
@@ -73,7 +119,8 @@ export const updateDepartment = async (req, res) => {
     if (!organizationName || !oldDepartmentName || !newDepartmentName) {
       return res.status(400).json({
         success: false,
-        message: "Organization name, old department name, and new department name are required.",
+        message:
+          "Organization name, old department name, and new department name are required.",
       });
     }
 
@@ -174,7 +221,7 @@ export const deleteDepartment = async (req, res) => {
   }
 };
 
-//Add Position 
+//Add Position
 export const addPosition = async (req, res) => {
   try {
     const { organizationName, departmentName, positions } = req.body;
@@ -283,13 +330,24 @@ export const getPositions = async (req, res) => {
 //Update Position
 export const updatePosition = async (req, res) => {
   try {
-    const { organizationName, departmentName, oldPositionName, newPositionName } = req.body;
+    const {
+      organizationName,
+      departmentName,
+      oldPositionName,
+      newPositionName,
+    } = req.body;
 
     // Validate required fields
-    if (!organizationName || !departmentName || !oldPositionName || !newPositionName) {
+    if (
+      !organizationName ||
+      !departmentName ||
+      !oldPositionName ||
+      !newPositionName
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Organization name, department name, old position name, and new position name are required.",
+        message:
+          "Organization name, department name, old position name, and new position name are required.",
       });
     }
 
@@ -355,7 +413,8 @@ export const deletePosition = async (req, res) => {
     if (!organizationName || !departmentName || !positionName) {
       return res.status(400).json({
         success: false,
-        message: "Organization name, department name, and position name are required.",
+        message:
+          "Organization name, department name, and position name are required.",
       });
     }
 
@@ -412,7 +471,7 @@ export const deletePosition = async (req, res) => {
   }
 };
 
-//Add Approval chain 
+//Add Approval chain
 export const addApprovalChain = async (req, res) => {
   try {
     const { organizationName, departmentName, action, level1, level2 } =
@@ -532,7 +591,8 @@ export const getApprovalChain = async (req, res) => {
 //Update Approval chain
 export const updateApprovalChain = async (req, res) => {
   try {
-    const { organizationName, departmentName, action, level1, level2 } = req.body;
+    const { organizationName, departmentName, action, level1, level2 } =
+      req.body;
 
     // Check if all fields are provided
     if (!organizationName || !departmentName || !action || !level1 || !level2) {
@@ -645,22 +705,14 @@ export const deleteApprovalChain = async (req, res) => {
   }
 };
 
-// Organization Add Data 
+// Organization Add Data
 export const organizationAddData = async (req, res) => {
   try {
     // Fetch organizationName and username from request context or a relevant source
     const { organizationName } = req.body;
 
-    const {
-      address,
-      city,
-      state,
-      country,
-      pinCode,
-      phone,
-      fax,
-      email,
-    } = req.body;
+    const { address, city, state, country, pinCode, phone, fax, email } =
+      req.body;
 
     // Validate required fields
     if (
@@ -690,16 +742,15 @@ export const organizationAddData = async (req, res) => {
     }
 
     // Create the new organization
-    organization.address = address,
-    organization.city = city,
-    organization.state = state,
-    organization.country = country,
-    organization.pinCode = pinCode,
-    organization.phone = phone,
-    organization.fax = fax,
-    organization.email = email,
-
-    await organization.save();
+    (organization.address = address),
+      (organization.city = city),
+      (organization.state = state),
+      (organization.country = country),
+      (organization.pinCode = pinCode),
+      (organization.phone = phone),
+      (organization.fax = fax),
+      (organization.email = email),
+      await organization.save();
 
     // Send a success response
     res.status(201).json({
@@ -729,16 +780,8 @@ export const organizationUpdateData = async (req, res) => {
   try {
     const { organizationName } = req.body;
 
-    const {
-      address,
-      city,
-      state,
-      country,
-      pinCode,
-      phone,
-      fax,
-      email,
-    } = req.body;
+    const { address, city, state, country, pinCode, phone, fax, email } =
+      req.body;
 
     // Validate required fields
     if (!organizationName) {
