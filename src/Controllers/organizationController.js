@@ -31,20 +31,9 @@ export const getDataBasedOnOrganization = async (req, res) => {
       });
     }
 
-    // Assuming `organizationName` is part of `userOrganization`, adapt this part
-    const { organizationName } = userOrganization;
-    
-    // Return the organization name found for the user
-    if (!organizationName) {
-      return res.status(404).json({
-        success: false,
-        message: `Organization not found for username ${username}`,
-      });
-    }
-
     return res.status(200).json({
       success: true,
-      data: organizationName,
+      data: userOrganization,
     });
   } catch (error) {
     res.status(500).json({
