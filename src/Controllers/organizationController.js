@@ -1009,9 +1009,18 @@ export const createOrganization = async (req, res) => {
       $or: [{ email }, { username }, { organizationName }],
     });
     if (existingOrganization) {
+      // Check which field is causing the duplicate issue
+      let errorMessage = "Organization already exists.";
+      if (existingOrganization.email === email) {
+        errorMessage = `Email ${email} is already registered.`;
+      } else if (existingOrganization.username === username) {
+        errorMessage = `Username ${username} is already taken.`;
+      } else if (existingOrganization.organizationName === organizationName) {
+        errorMessage = `Organization name ${organizationName} is already in use.`;
+      }
       return res.status(400).json({
         success: false,
-        message: "Organization Allready Created",
+        message: errorMessage,
       });
     }
 
@@ -1025,7 +1034,6 @@ export const createOrganization = async (req, res) => {
       });
     }
 
-    // Log recent OTP and email OTP for debugging
     // console.log("Recent OTP from DB:", recentOtp.emailOtp);
     // console.log("Provided email OTP:", emailOtp);
 
@@ -1046,6 +1054,8 @@ export const createOrganization = async (req, res) => {
     const newOrganization = await Organization.create({
       username,
       organizationName,
+      email,
+      contactNumber, // Add contactNumber and email while creating organization
     });
 
     //hash the password
@@ -1091,6 +1101,13 @@ export const createOrganization = async (req, res) => {
       },
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Duplicate key error. Please check email or organization name.",
+      });
+    }
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to register user",
