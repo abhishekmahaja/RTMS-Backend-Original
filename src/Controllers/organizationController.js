@@ -258,7 +258,7 @@ export const addPosition = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Positions added/updated for department ${departmentName}`,
+      message: `Positions added for department ${departmentName}`,
       data: organization.departments,
     });
   } catch (error) {
@@ -509,15 +509,14 @@ export const addApprovalChain = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Approval chain added/updated successfully for department ${departmentName}`,
+      message: `Approval chain added successfully for department ${departmentName}`,
       data: organization.departments,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message:
-        error.message ||
-        "An error occurred while adding/updating the approval chain",
+        error.message || "An error occurred while adding the approval chain",
     });
   }
 };
