@@ -12,15 +12,15 @@ const departmentSchema = new mongoose.Schema({
   },
   approvalChain: {
     action: {
-      type: [String],
-      default: [],
+      type: String,
+      default: [], 
     },
     level1: {
-      type: [String],
+      type: String,
       default: [],
     },
     level2: {
-      type: [String],
+      type: String,
       default: [],
     },
   },
