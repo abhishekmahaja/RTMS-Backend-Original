@@ -10,23 +10,20 @@ const departmentSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
-  approvalChain: [
-    {
-      action: {
-        type: String,
-        required: true,
-      },
-      level1: {
-        type: String,
-        required: true,
-      },
-      level2: {
-        type: String,
-        required: true,
-      },
+  approvalChain: {
+    action: {
+      type: [String],
+      default: [],
     },
-  ],
-
+    level1: {
+      type: [String],
+      default: [],
+    },
+    level2: {
+      type: [String],
+      default: [],
+    },
+  },
 });
 
 //organization update schema
