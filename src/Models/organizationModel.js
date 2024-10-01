@@ -21,7 +21,7 @@ const departmentSchema = new mongoose.Schema({
     },
     level2: {
       type: String,
-      default: [],
+      default: [], // Default value for level2
     },
   },
 });
