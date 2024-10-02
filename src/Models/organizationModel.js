@@ -12,16 +12,16 @@ const departmentSchema = new mongoose.Schema({
   },
   approvalChain: {
     action: {
-      type: String,
-      default: "", // Change to empty string
+      type: [String], // Change to array of strings
+      default: [], // Keep as an array
     },
     level1: {
-      type: String,
-      default: "", // Change to empty string
+      type: [String], // Change to array of strings
+      default: [], // Keep as an array
     },
     level2: {
-      type: String,
-      default: "", // Change to empty string
+      type: [String], // Change to array of strings
+      default: [], // Keep as an array
     },
   },
 });
