@@ -7,17 +7,21 @@ const departmentSchema = new mongoose.Schema({
     required: [true, "Department name is required"],
   },
   positions: {
-    type: [String], // No default, will be added only if provided
+    type: [String],
+    default: [],
   },
   approvalChain: {
     action: {
-      type: [String], // Array of strings, no default value
+      type: String,
+      default: [], 
     },
     level1: {
-      type: [String], // Array of strings, no default value
+      type: String,
+      default: [],
     },
     level2: {
-      type: [String], // Array of strings, no default value
+      type: String,
+      default: [], // Default value for level2
     },
   },
 });
