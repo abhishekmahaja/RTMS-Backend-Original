@@ -498,11 +498,11 @@ export const addApprovalChain = async (req, res) => {
     }
 
     // Update the approval chain for the department
-    department.approvalChain = {
+    department.approvalChain.push({
       action,
       level1,
       level2,
-    };
+    });
 
     // Save the updated organization
     await organization.save();
@@ -557,7 +557,7 @@ export const getApprovalChain = async (req, res) => {
     }
 
     // Return the approval chain
-    if (!department.approvalChain) {
+    if (!department.approvalChain || department.length <= 0 ) {
       return res.status(404).json({
         success: false,
         message: `No approval chain found for department ${departmentName}`,
