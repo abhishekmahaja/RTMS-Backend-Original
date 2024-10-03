@@ -556,8 +556,8 @@ export const getApprovalChain = async (req, res) => {
       });
     }
 
-    // Return the approval chain
-    if (!department.approvalChain || department.length <= 0 ) {
+    // Return the approval chain  || department.length <= 0
+    if (!department.approvalChain) {
       return res.status(404).json({
         success: false,
         message: `No approval chain found for department ${departmentName}`,
