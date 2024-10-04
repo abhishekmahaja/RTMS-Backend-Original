@@ -270,6 +270,51 @@ export const addPosition = async (req, res) => {
 };
 
 //get Position api
+// export const getPositions = async (req, res) => {
+//   try {
+//     const { organizationName, departmentName } = req.query;
+
+//     // Validate required fields
+//     if (!organizationName || !departmentName) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Organization name and department name are required.",
+//       });
+//     }
+
+//     // Find the organization by name
+//     const organization = await Organization.findOne({ organizationName });
+
+//     if (!organization) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Organization not found.",
+//       });
+//     }
+
+//     // Find the department within the organization
+//     const department = organization.departments.find(
+//       (dep) => dep.departmentName === departmentName
+//     );
+
+//     if (!department) {
+//       return res.status(404).json({
+//         success: false,
+//         message: `Department ${departmentName} not found in organization ${organizationName}.`,
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       data: department.positions,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: "An error occurred while fetching positions.",
+//     });
+//   }
+// };
 export const getPositions = async (req, res) => {
   try {
     const { organizationName, departmentName } = req.query;
@@ -304,6 +349,15 @@ export const getPositions = async (req, res) => {
       });
     }
 
+    // Check if positions array exists and is not empty
+    if (!department.positions || department.positions.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No positions available in this department.",
+        data: [], // Empty array since there are no positions
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: department.positions,
@@ -315,6 +369,7 @@ export const getPositions = async (req, res) => {
     });
   }
 };
+
 
 //Update Position
 export const updatePosition = async (req, res) => {
