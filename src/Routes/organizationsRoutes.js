@@ -35,7 +35,7 @@ organizationRouter.post(
 );
 organizationRouter.post("/add-department", addDepartment);
 organizationRouter.put("/update-department", updateDepartment);
-organizationRouter.delete("/delete-department", deleteDepartment);
+organizationRouter.post("/delete-department", deleteDepartment);
 organizationRouter.post("/add-position", addPosition);
 organizationRouter.get("/get-positions", getPositions);
 organizationRouter.put("/update-position", updatePosition);
