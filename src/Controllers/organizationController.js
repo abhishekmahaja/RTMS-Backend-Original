@@ -577,15 +577,69 @@ export const addApprovalChain = async (req, res) => {
 };
 
 //Get Approval chain
-export const getApprovalChain = async (req, res) => {
-  try {
-    const { organizationName, departmentName } = req.query;
+// export const getApprovalChain = async (req, res) => {
+//   try {
+//     const { organizationName, departmentName } = req.query;
 
-    // Check if all fields are provided
-    if (!organizationName || !departmentName) {
+//     // Check if all fields are provided
+//     if (!organizationName || !departmentName) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Organization name and department name are required",
+//       });
+//     }
+
+//     // Find the organization by name
+//     const organization = await Organization.findOne({ organizationName });
+
+//     if (!organization) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Organization not found",
+//       });
+//     }
+
+//     // Find the department by name
+//     const department = organization.departments.find(
+//       (dep) => dep.departmentName === departmentName
+//     );
+
+//     if (!department) {
+//       return res.status(404).json({
+//         success: false,
+//         message: `Department ${departmentName} not found in the organization`,
+//       });
+//     }
+
+//     // Return the approval chain  || department.length <= 0
+//     if (!department.approvalChain) {
+//       return res.status(404).json({
+//         success: false,
+//         message: `No approval chain found for department ${departmentName}`,
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       data: department.approvalChain,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: "An error occurred while fetching the approval chain",
+//     });
+//   }
+// };
+export const addApprovalChain = async (req, res) => {
+  try {
+    const { organizationName, departmentName, action, level1, level2 } = req.body;
+
+    // Validate that all fields are provided
+    if (!organizationName || !departmentName || !action || !level1 || !level2) {
       return res.status(400).json({
         success: false,
-        message: "Organization name and department name are required",
+        message:
+          "All fields (organizationName, departmentName, action, level1, level2) are required",
       });
     }
 
@@ -599,7 +653,7 @@ export const getApprovalChain = async (req, res) => {
       });
     }
 
-    // Find the department by name
+    // Find the department by name within the organization
     const department = organization.departments.find(
       (dep) => dep.departmentName === departmentName
     );
@@ -611,25 +665,44 @@ export const getApprovalChain = async (req, res) => {
       });
     }
 
-    // Return the approval chain  || department.length <= 0
+    // Ensure the approval chain exists for the department (optional)
     if (!department.approvalChain) {
-      return res.status(404).json({
-        success: false,
-        message: `No approval chain found for department ${departmentName}`,
+      department.approvalChain = [];
+    }
+
+    // Update the approval chain for the department
+    department.approvalChain.push({
+      action,
+      level1,
+      level2,
+    });
+
+    // Save the updated organization
+    await organization.save();
+
+    // Check if the approval chain is empty after the update
+    if (!department.approvalChain || department.approvalChain.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: `No approval chain available for department ${departmentName}`,
+        data: [],
       });
     }
 
     return res.status(200).json({
       success: true,
-      data: department.approvalChain,
+      message: `Approval chain added successfully for department ${departmentName}`,
+      data: department.approvalChain, // Return the updated approval chain
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "An error occurred while fetching the approval chain",
+      message:
+        error.message || "An error occurred while adding the approval chain",
     });
   }
 };
+
 
 //Update Approval chain
 export const updateApprovalChain = async (req, res) => {
