@@ -270,51 +270,6 @@ export const addPosition = async (req, res) => {
 };
 
 //get Position api
-// export const getPositions = async (req, res) => {
-//   try {
-//     const { organizationName, departmentName } = req.query;
-
-//     // Validate required fields
-//     if (!organizationName || !departmentName) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Organization name and department name are required.",
-//       });
-//     }
-
-//     // Find the organization by name
-//     const organization = await Organization.findOne({ organizationName });
-
-//     if (!organization) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Organization not found.",
-//       });
-//     }
-
-//     // Find the department within the organization
-//     const department = organization.departments.find(
-//       (dep) => dep.departmentName === departmentName
-//     );
-
-//     if (!department) {
-//       return res.status(404).json({
-//         success: false,
-//         message: `Department ${departmentName} not found in organization ${organizationName}.`,
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       data: department.positions,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       success: false,
-//       message: "An error occurred while fetching positions.",
-//     });
-//   }
-// };
 export const getPositions = async (req, res) => {
   try {
     const { organizationName, departmentName } = req.query;
@@ -369,7 +324,6 @@ export const getPositions = async (req, res) => {
     });
   }
 };
-
 
 //Update Position
 export const updatePosition = async (req, res) => {
@@ -577,64 +531,11 @@ export const addApprovalChain = async (req, res) => {
 };
 
 //Get Approval chain
-// export const getApprovalChain = async (req, res) => {
-//   try {
-//     const { organizationName, departmentName } = req.query;
-
-//     // Check if all fields are provided
-//     if (!organizationName || !departmentName) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Organization name and department name are required",
-//       });
-//     }
-
-//     // Find the organization by name
-//     const organization = await Organization.findOne({ organizationName });
-
-//     if (!organization) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Organization not found",
-//       });
-//     }
-
-//     // Find the department by name
-//     const department = organization.departments.find(
-//       (dep) => dep.departmentName === departmentName
-//     );
-
-//     if (!department) {
-//       return res.status(404).json({
-//         success: false,
-//         message: `Department ${departmentName} not found in the organization`,
-//       });
-//     }
-
-//     // Return the approval chain  || department.length <= 0
-//     if (!department.approvalChain) {
-//       return res.status(404).json({
-//         success: false,
-//         message: `No approval chain found for department ${departmentName}`,
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       data: department.approvalChain,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       success: false,
-//       message: "An error occurred while fetching the approval chain",
-//     });
-//   }
-// };
 export const getApprovalChain = async (req, res) => {
   try {
     const { organizationName, departmentName } = req.query;
 
-    // Validate that organizationName and departmentName are provided
+    // Check if all fields are provided
     if (!organizationName || !departmentName) {
       return res.status(400).json({
         success: false,
@@ -652,7 +553,7 @@ export const getApprovalChain = async (req, res) => {
       });
     }
 
-    // Find the department by name within the organization
+    // Find the department by name
     const department = organization.departments.find(
       (dep) => dep.departmentName === departmentName
     );
@@ -664,15 +565,14 @@ export const getApprovalChain = async (req, res) => {
       });
     }
 
-    // Check if the approval chain exists and is not empty
-    if (!department.approvalChain || department.approvalChain.length === 0) {
+    // Return the approval chain  || department.length <= 0
+    if (!department.approvalChain) {
       return res.status(404).json({
         success: false,
         message: `No approval chain found for department ${departmentName}`,
       });
     }
 
-    // Return the approval chain
     return res.status(200).json({
       success: true,
       data: department.approvalChain,
@@ -684,7 +584,6 @@ export const getApprovalChain = async (req, res) => {
     });
   }
 };
-
 
 //Update Approval chain
 export const updateApprovalChain = async (req, res) => {
