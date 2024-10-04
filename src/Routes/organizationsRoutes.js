@@ -13,6 +13,7 @@ import {
   getDataBasedOnOrganization,
   getPositions,
   organizationAddData,
+  organizationDelete,
   organizationDropDown,
   organizationGetData,
   organizationUpdateData,
@@ -25,9 +26,10 @@ const organizationRouter = express.Router();
 organizationRouter.get("/get-data-based-on-organization", getDataBasedOnOrganization);
 organizationRouter.post("/organization-add-data", organizationAddData);
 organizationRouter.put("/organization-update-data", organizationUpdateData);
-organizationRouter.get("/organization-get-data", organizationGetData);
+organizationRouter.get("/organization-get-data", organizationGetData); //extra data 
 organizationRouter.post("/generate-otp-oragnization", generateOtpOragnization);
 organizationRouter.post("/create-organization", createOrganization);
+organizationRouter.post("/organization-delete", organizationDelete);
 organizationRouter.get("/organization-drop-down", organizationDropDown);
 organizationRouter.post(
   "/department-base-org-name-dropdown",

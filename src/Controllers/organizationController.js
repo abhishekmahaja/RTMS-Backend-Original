@@ -9,40 +9,6 @@ import Users from "../Models/userModel.js";
 import OTP from "../Models/OTP-model.js";
 import { AwsInstance } from "twilio/lib/rest/accounts/v1/credential/aws.js";
 
-//get organization name and all deta fetch accordinly
-export const getDataBasedOnOrganization = async (req, res) => {
-  try {
-    const { username } = req.query;
-
-    if (!username) {
-      return res.status(400).json({
-        success: false,
-        message: "Username is required",
-      });
-    }
-
-    // Fetch the organization data based on the username
-    const userOrganization = await Organization.findOne({ username });
-
-    if (!userOrganization) {
-      return res.status(404).json({
-        success: false,
-        message: "Username not found",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: userOrganization,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Error fetching Organization Data",
-    });
-  }
-};
-
 //Add department
 export const addDepartment = async (req, res) => {
   try {
@@ -772,6 +738,77 @@ export const organizationAddData = async (req, res) => {
   }
 };
 
+// Organization Get Data API(EXTRA DATA)
+export const organizationGetData = async (req, res) => {
+  try {
+    const { organizationName } = req.query; // Assuming you're using query params
+
+    // Validate required fields
+    if (!organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name is required.",
+      });
+    }
+
+    // Fetch the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found.",
+      });
+    }
+
+    // Send a success response
+    return res.status(200).json({
+      success: true,
+      message: "Organization data fetched successfully.",
+      data: organization,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch organization data.",
+    });
+  }
+};
+
+//get organization name and all deta fetch accordinly
+export const getDataBasedOnOrganization = async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: "Username is required",
+      });
+    }
+
+    // Fetch the organization data based on the username
+    const userOrganization = await Organization.findOne({ username });
+
+    if (!userOrganization) {
+      return res.status(404).json({
+        success: false,
+        message: "Username not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: userOrganization,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching Organization Data",
+    });
+  }
+};
+
 // Organization Update Data API
 export const organizationUpdateData = async (req, res) => {
   try {
@@ -827,43 +864,6 @@ export const organizationUpdateData = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update organization.",
-    });
-  }
-};
-
-// Organization Get Data API
-export const organizationGetData = async (req, res) => {
-  try {
-    const { organizationName } = req.query; // Assuming you're using query params
-
-    // Validate required fields
-    if (!organizationName) {
-      return res.status(400).json({
-        success: false,
-        message: "Organization name is required.",
-      });
-    }
-
-    // Fetch the organization by name
-    const organization = await Organization.findOne({ organizationName });
-
-    if (!organization) {
-      return res.status(404).json({
-        success: false,
-        message: "Organization not found.",
-      });
-    }
-
-    // Send a success response
-    return res.status(200).json({
-      success: true,
-      message: "Organization data fetched successfully.",
-      data: organization,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch organization data.",
     });
   }
 };
@@ -1119,6 +1119,45 @@ export const createOrganization = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to register user",
+    });
+  }
+};
+
+// Organization Delete by Admin
+export const organizationDelete = async (req, res) => {
+  try {
+    const { organizationName } = req.body;
+
+    // Validate required field
+    if (!organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name is required.",
+      });
+    }
+
+    // Find the organization by name
+    const organization = await Organization.findOne({ organizationName });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found.",
+      });
+    }
+
+    // Delete the organization
+    await Organization.deleteOne({ organizationName });
+
+    // Send a success response
+    return res.status(200).json({
+      success: true,
+      message: "Organization deleted successfully.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete organization.",
     });
   }
 };
