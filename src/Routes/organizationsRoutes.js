@@ -39,10 +39,10 @@ organizationRouter.post("/delete-department", deleteDepartment);
 organizationRouter.post("/add-position", addPosition);
 organizationRouter.get("/get-positions", getPositions);
 organizationRouter.put("/update-position", updatePosition);
-organizationRouter.delete("/delete-position", deletePosition);
+organizationRouter.post("/delete-position", deletePosition);
 organizationRouter.post("/add-approval-chain", addApprovalChain);
 organizationRouter.get("/get-approval-chain", getApprovalChain);
 organizationRouter.put("/update-approval-chain", updateApprovalChain);
-organizationRouter.delete("/delete-approval-chain", deleteApprovalChain);
+organizationRouter.post("/delete-approval-chain", deleteApprovalChain);
 
 export default organizationRouter;
