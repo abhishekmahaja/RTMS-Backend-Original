@@ -671,7 +671,6 @@ export const deleteApprovalChain = async (req, res) => {
 // Organization Add Data
 export const organizationAddData = async (req, res) => {
   try {
-    // Fetch organizationName and username from request context or a relevant source
     const { organizationName } = req.body;
 
     const { address, city, state, country, pinCode, phone, fax, email } =
@@ -686,6 +685,7 @@ export const organizationAddData = async (req, res) => {
       !country ||
       !pinCode ||
       !phone ||
+      !fax ||
       !email
     ) {
       return res.status(400).json({
@@ -713,6 +713,7 @@ export const organizationAddData = async (req, res) => {
       (organization.phone = phone),
       (organization.fax = fax),
       (organization.email = email),
+      
       await organization.save();
 
     // Send a success response
@@ -722,7 +723,6 @@ export const organizationAddData = async (req, res) => {
       data: organization,
     });
   } catch (error) {
-    // Handle validation errors
     if (error.name === "ValidationError") {
       return res.status(400).json({
         success: false,
@@ -741,7 +741,7 @@ export const organizationAddData = async (req, res) => {
 // Organization Get Data API(EXTRA DATA)
 export const organizationGetData = async (req, res) => {
   try {
-    const { organizationName } = req.query; // Assuming you're using query params
+    const { organizationName } = req.query; 
 
     // Validate required fields
     if (!organizationName) {
