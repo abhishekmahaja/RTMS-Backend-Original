@@ -555,15 +555,32 @@ export const getApprovalChain = async (req, res) => {
 //Update Approval chain
 export const updateApprovalChain = async (req, res) => {
   try {
-    const { organizationName, departmentName, action, level1, level2 } =
-      req.body;
+    const {
+      organizationName,
+      departmentName,
+      oldAction,
+      oldLevel1,
+      oldLevel2,
+      newAction,
+      newLevel1,
+      newLevel2,
+    } = req.body;
 
-    // Check if all fields are provided
-    if (!organizationName || !departmentName || !action || !level1 || !level2) {
+    // Check if all required fields are provided
+    if (
+      !organizationName ||
+      !departmentName ||
+      !oldAction ||
+      !oldLevel1 ||
+      !oldLevel2 ||
+      !newAction ||
+      !newLevel1 ||
+      !newLevel2
+    ) {
       return res.status(400).json({
         success: false,
         message:
-          "Organization name, department name, action, level1, and level2 are required",
+          "Organization name, department name, old approval chain (action, level1, level2), and new approval chain are required",
       });
     }
 
@@ -589,8 +606,28 @@ export const updateApprovalChain = async (req, res) => {
       });
     }
 
-    // Update the approval chain
-    department.approvalChain = { action, level1, level2 };
+    // Find the approval chain by matching the old values
+    const approvalChainIndex = department.approvalChain.findIndex(
+      (chain) =>
+        chain.action === oldAction &&
+        chain.level1 === oldLevel1 &&
+        chain.level2 === oldLevel2
+    );
+
+    // If the old approval chain is not found
+    if (approvalChainIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Old approval chain not found",
+      });
+    }
+
+    // Update the approval chain with the new values
+    department.approvalChain[approvalChainIndex] = {
+      action: newAction,
+      level1: newLevel1,
+      level2: newLevel2,
+    };
 
     // Save the updated organization
     await organization.save();
@@ -604,6 +641,7 @@ export const updateApprovalChain = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "An error occurred while updating the approval chain",
+      error: error.message,
     });
   }
 };
@@ -611,13 +649,13 @@ export const updateApprovalChain = async (req, res) => {
 //Delete Approval chain
 export const deleteApprovalChain = async (req, res) => {
   try {
-    const { organizationName, departmentName } = req.body;
+    const { organizationName, departmentName, action, level1, level2 } = req.body;
 
-    // Check if all fields are provided
-    if (!organizationName || !departmentName) {
+    // Check if required fields are provided
+    if (!organizationName || !departmentName || !action || !level1 || !level2) {
       return res.status(400).json({
         success: false,
-        message: "Organization name and department name are required",
+        message: "Organization name, department name, action, level1, and level2 are required",
       });
     }
 
@@ -643,16 +681,29 @@ export const deleteApprovalChain = async (req, res) => {
       });
     }
 
-    // Check if an approval chain exists
-    if (!department.approvalChain) {
+    // Check if the approval chain exists
+    if (!department.approvalChain || department.approvalChain.length === 0) {
       return res.status(404).json({
         success: false,
         message: `No approval chain found for department ${departmentName}`,
       });
     }
 
-    // Delete the approval chain
-    department.approvalChain = undefined;
+    // Find the index of the approval chain to be deleted
+    const approvalChainIndex = department.approvalChain.findIndex(
+      (app) => app.action === action && app.level1 === level1 && app.level2 === level2
+    );
+
+    // If the approval chain entry is not found, return an error
+    if (approvalChainIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: `Approval chain with specified action, level1, and level2 not found in department ${departmentName}`,
+      });
+    }
+
+    // Delete the approval chain entry at the found index
+    department.approvalChain.splice(approvalChainIndex, 1);
 
     // Save the updated organization
     await organization.save();
@@ -660,11 +711,13 @@ export const deleteApprovalChain = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: `Approval chain deleted successfully for department ${departmentName}`,
+      data: department.approvalChain,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "An error occurred while deleting the approval chain",
+      error: error.message,
     });
   }
 };
@@ -699,6 +752,7 @@ export const organizationAddData = async (req, res) => {
       !country ||
       !pinCode ||
       !phone ||
+      !fax ||
       !email
     ) {
       return res.status(400).json({
@@ -754,7 +808,6 @@ export const organizationAddData = async (req, res) => {
       data: organization,
     });
   } catch (error) {
-    // Handle validation errors
     if (error.name === "ValidationError") {
       return res.status(400).json({
         success: false,
@@ -773,7 +826,7 @@ export const organizationAddData = async (req, res) => {
 // Organization Get Data API
 export const organizationGetData = async (req, res) => {
   try {
-    const { organizationName } = req.query; // Assuming you're using query params
+    const { organizationName } = req.query;
 
     // Validate required fields
     if (!organizationName) {
