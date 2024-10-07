@@ -34,6 +34,17 @@ const organizationSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    organizationlogo: {
+      type: String,
+      required: [true, "Organization Logo is Required"],
+      default: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fdribbble.com%2Fshots%2F22963525-Mahajan-Logo-Design&psig=AOvVaw1vg_MLNNACVe7imTQPab3p&ust=1728365702726000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCICitZbG-4gDFQAAAAAdAAAAABAE",
+    },
+    subtitlename: {
+      type: String,
+      required: true,
+      unique: true,
+      default: "organization Subtitle",
+    },
     address: {
       type: String,
       required: true,

@@ -1,6 +1,7 @@
 import {
   sendNewCreateOrganization,
   sendOTPVerification,
+  uploadCloudinary,
 } from "../Helpers/helper.js";
 import bcrypt from "bcryptjs";
 import Organization from "../Models/organizationModel.js";
@@ -671,14 +672,26 @@ export const deleteApprovalChain = async (req, res) => {
 // Organization Add Data
 export const organizationAddData = async (req, res) => {
   try {
-    // Fetch organizationName and username from request context or a relevant source
     const { organizationName } = req.body;
 
-    const { address, city, state, country, pinCode, phone, fax, email } =
-      req.body;
+    const {
+      subtitlename,
+      address,
+      city,
+      state,
+      country,
+      pinCode,
+      phone,
+      fax,
+      email,
+    } = req.body;
+
+    const organizationlogo = req.files?.organizationlogo;
 
     // Validate required fields
     if (
+      !organizationlogo ||
+      !subtitlename ||
       !organizationName ||
       !address ||
       !city ||
@@ -704,8 +717,27 @@ export const organizationAddData = async (req, res) => {
       });
     }
 
+    //validong file types (e.g. images)
+    const validImageLogo = ["image/jpeg", "image/png", "imgage/jpg"];
+    if (!validImageLogo.includes(organizationlogo.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        message: "Ipload Files must be Images (jpeg, png, jpg",
+      });
+    }
+
+    //iploading logo to cloudinary
+    const organizationLogoRes = await uploadCloudinary(
+      organizationlogo,
+      "Logo",
+      1000,
+      1000
+    );
+
     // Create the new organization
-    (organization.address = address),
+    (organization.organizationlogo = organizationLogoRes.secure_url),
+      (organization.subtitlename = subtitlename),
+      (organization.address = address),
       (organization.city = city),
       (organization.state = state),
       (organization.country = country),
@@ -738,7 +770,7 @@ export const organizationAddData = async (req, res) => {
   }
 };
 
-// Organization Get Data API(EXTRA DATA)
+// Organization Get Data API
 export const organizationGetData = async (req, res) => {
   try {
     const { organizationName } = req.query; // Assuming you're using query params
@@ -775,7 +807,7 @@ export const organizationGetData = async (req, res) => {
   }
 };
 
-//get organization name and all deta fetch accordinly
+//get organization Data and all deta fetch accordinly (EXTRA DATA)
 export const getDataBasedOnOrganization = async (req, res) => {
   try {
     const { username } = req.query;
@@ -809,13 +841,24 @@ export const getDataBasedOnOrganization = async (req, res) => {
   }
 };
 
-// Organization Update Data API
+// Organization Update Data API (No Need)
 export const organizationUpdateData = async (req, res) => {
   try {
     const { organizationName } = req.body;
 
-    const { address, city, state, country, pinCode, phone, fax, email } =
-      req.body;
+    const {
+      // newOrganizationName,
+      organizationlogo,
+      subtitlename,
+      address,
+      city,
+      state,
+      country,
+      pinCode,
+      phone,
+      fax,
+      email,
+    } = req.body;
 
     // Validate required fields
     if (!organizationName) {
@@ -836,6 +879,13 @@ export const organizationUpdateData = async (req, res) => {
     }
 
     // Update organization details
+    // if (newOrganizationName)
+    //   organization.organizationName = newOrganizationName;
+    if (organizationlogo?.organizationLogoRes?.secure_url) {
+      organization.organizationlogo =
+        organizationlogo.organizationLogoRes.secure_url;
+    }
+    if (subtitlename) organization.subtitlename = subtitlename;
     if (address) organization.address = address;
     if (city) organization.city = city;
     if (state) organization.state = state;
