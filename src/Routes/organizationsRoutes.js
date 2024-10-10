@@ -23,10 +23,10 @@ import {
 } from "../Controllers/organizationController.js";
 
 const organizationRouter = express.Router();
-organizationRouter.get("/get-data-based-on-organization", getDataBasedOnOrganization);
+organizationRouter.get("/get-data-based-on-organization", getDataBasedOnOrganization);  //extra data 
 organizationRouter.post("/organization-add-data", organizationAddData);
 organizationRouter.put("/organization-update-data", organizationUpdateData);
-organizationRouter.get("/organization-get-data", organizationGetData); //extra data 
+organizationRouter.get("/organization-get-data", organizationGetData);
 organizationRouter.post("/generate-otp-oragnization", generateOtpOragnization);
 organizationRouter.post("/create-organization", createOrganization);
 organizationRouter.post("/organization-delete", organizationDelete);
