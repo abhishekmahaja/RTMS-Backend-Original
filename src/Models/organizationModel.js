@@ -88,7 +88,7 @@ const organizationSchema = new mongoose.Schema(
       },
       default: "owner@gmail.com",
     },
-    departments: [departmentSchema], // Updated with department schema
+    departments: [departmentSchema], 
   },
   { timestamps: true }
 );
