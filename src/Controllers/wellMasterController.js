@@ -86,7 +86,7 @@ export const addInstallationToLocation = async (req, res) => {
   try {
     const { organizationName, wellLocation, wellInstallations } = req.body;
 
-    console.log("Request Body:", req.body);
+    // console.log("Request Body:", req.body);
 
     // Validate if organizationName, wellLocation, and wellInstallations are provided
     if (!organizationName || !wellLocation || !wellInstallations) {
@@ -119,6 +119,19 @@ export const addInstallationToLocation = async (req, res) => {
       });
     }
 
+    // Check if the installation already exists for the location
+    const installationExists = location.wellInstallations.some(
+      (installation) => installation === wellInstallations
+    );
+
+    if (installationExists) {
+      return res.status(400).json({
+        success: false,
+        message: `Installation ${wellInstallations} already exists for the location ${wellLocation}`,
+      });
+    }
+
+    // Add the new installation if it doesn't exist
     location.wellInstallations.push(wellInstallations);
 
     await well.save();
