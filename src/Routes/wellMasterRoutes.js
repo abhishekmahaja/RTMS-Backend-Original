@@ -8,11 +8,17 @@ import {
   getNotApprovalWells,
   wellApprovedByManager,
   wellApprovedByOwner,
+  addWellLocation,
+  addInstallationToLocation,
+  addWellTypeAndNumber,
 } from "../Controllers/wellMasterController.js";
 
-const wellRouter = express.Router(); // Correctly define wellRouter
+const wellRouter = express.Router(); 
 
 // routes to call API
+wellRouter.post("/add-well-location", addWellLocation);
+wellRouter.post("/add-installation-to-location", addInstallationToLocation);
+wellRouter.post("/add-well-type-and-number", addWellTypeAndNumber);
 wellRouter.post("/add-well", addWell);
 wellRouter.put("/update-well/:id", updateWell);
 wellRouter.delete("/delete-well/:id", deleteWell);
