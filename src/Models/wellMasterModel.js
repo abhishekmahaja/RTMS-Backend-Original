@@ -53,16 +53,31 @@ const FlowCheckSchema = new mongoose.Schema({
   },
 });
 
-// Schema for well details
+// correct sepertly
 const WellDetailsSchema = new mongoose.Schema({
   wellLocation: {
     type: String,
     required: true,
   },
-  wellInstallations: {
-    type: [String],
-  },
+  wellInstallations: [
+    {
+      wellInstallation: {
+        type: String,
+        required: true,
+      },
+      wellNumber: {
+        type: [String],
+        unique: true,
+      },
+      wellTypes: {
+        type: [String], 
+        enum: ["All", "selfFlowing", "puggerWell"],
+        default: "All",
+      },
+    },
+  ],
 });
+
 
 // Main Well schema
 const WellSchema = new mongoose.Schema(
@@ -71,15 +86,6 @@ const WellSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-    },
-    wellNumber: {
-      type: String,
-      unique: true,
-    },
-    wellType: {
-      type: String,
-      enum: ["All", "selfFlowing", "puggerWell"],
-    default: "All",
     },
     wellLocations: {
       type: [WellDetailsSchema],

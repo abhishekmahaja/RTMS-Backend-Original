@@ -1177,6 +1177,7 @@ export const createOrganization = async (req, res) => {
     //   "employee id",
     //   `${organizationName.substring(0, 4).toUpperCase()}_OWN`
     // );
+
     // Creating new user for organization
     const newUser = await Users.create({
       username,
@@ -1189,6 +1190,8 @@ export const createOrganization = async (req, res) => {
       isApprovedByManager: true,
       isApprovedByOwner: true,
     });
+
+    
 
     //send Notification to Owner to created organization
     await sendNewCreateOrganization(

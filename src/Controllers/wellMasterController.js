@@ -86,9 +86,6 @@ export const addInstallationToLocation = async (req, res) => {
   try {
     const { organizationName, wellLocation, wellInstallations } = req.body;
 
-    // console.log("Request Body:", req.body);
-
-    // Validate if organizationName, wellLocation, and wellInstallations are provided
     if (!organizationName || !wellLocation || !wellInstallations) {
       return res.status(400).json({
         success: false,
@@ -103,7 +100,7 @@ export const addInstallationToLocation = async (req, res) => {
     if (!well) {
       return res.status(404).json({
         success: false,
-        message: `Well for organization ${organizationName} not found. Please add a well first.`,
+        message: `Well for organization ${organizationName} not found.`,
       });
     }
 
@@ -115,14 +112,13 @@ export const addInstallationToLocation = async (req, res) => {
     if (!location) {
       return res.status(404).json({
         success: false,
-        message: `Location ${wellLocation} not found.`,
+        message: `Location ${wellLocation} not found. Please add the location first.`,
       });
     }
 
     // Check if the installation already exists for the location
-    const installationExists = location.wellInstallations.some(
-      (installation) => installation === wellInstallations
-    );
+    const installationExists =
+      location.wellInstallations.includes(wellInstallations);
 
     if (installationExists) {
       return res.status(400).json({
@@ -134,6 +130,7 @@ export const addInstallationToLocation = async (req, res) => {
     // Add the new installation if it doesn't exist
     location.wellInstallations.push(wellInstallations);
 
+    // Save the updated well document
     await well.save();
 
     return res.status(200).json({
@@ -146,45 +143,142 @@ export const addInstallationToLocation = async (req, res) => {
     return res.status(500).json({
       success: false,
       message:
-        error.message || "An error occurred while adding the Installation",
+        error.message || "An error occurred while adding the installation",
     });
   }
 };
 
 //Add Well Type and Number on the  based of location and installation
+// export const addWellTypeAndNumber = async (req, res) => {
+//   try {
+//     const {
+//       organizationName,
+//       wellLocation,
+//       wellInstallation,
+//       wellNumber,
+//       wellType,
+//     } = req.body;
+
+//     // Validate if required fields are provided
+//     if (
+//       !organizationName ||
+//       !wellLocation ||
+//       !wellInstallation ||
+//       !wellNumber ||
+//       !wellType
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message:
+//           "Organization Name, Well Location, Well Installation, Well Number, and Well Type are required.",
+//       });
+//     }
+
+//     // Find the well associated with this organization
+//     let well = await Well.findOne({ organizationName });
+
+//     if (!well) {
+//       return res.status(404).json({
+//         success: false,
+//         message: `Well for organization ${organizationName} not found.`,
+//       });
+//     }
+
+//     // Find the location within the well's locations
+//     const location = well.wellLocations.find(
+//       (loc) => loc.wellLocation === wellLocation
+//     );
+
+//     if (!location) {
+//       return res.status(404).json({
+//         success: false,
+//         message: `Location ${wellLocation} not found. Please add the location first.`,
+//       });
+//     }
+
+//     // Find the installation within the location
+//     const installation = location.wellInstallations.find(
+//       (inst) => inst === wellInstallation
+//     );
+
+//     if (!installation) {
+//       return res.status(404).json({
+//         success: false,
+//         message: `Installation ${wellInstallation} not found in location ${wellLocation}. Please add the installation first.`,
+//       });
+//     }
+
+//     // Check if the well number is the same (since it's now a single string)
+//     if (location.wellNumber === wellNumber) {
+//       return res.status(400).json({
+//         success: false,
+//         message: `Well Number ${wellNumber} already exists for the Installation ${wellInstallation}`,
+//       });
+//     }
+
+//     location.wellNumber = wellNumber; // Update the well number
+
+//     // Check if the well type is the same (since it's now a single string)
+//     if (location.wellTypes === wellType) {
+//       return res.status(400).json({
+//         success: false,
+//         message: `Well Type ${wellType} already exists for the Installation ${wellInstallation}`,
+//       });
+//     }
+
+//     location.wellTypes = wellType; // Update the well type
+
+//     // Save the updated well document
+//     await well.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: `Well Number and Well Type Added successfully for installation ${wellInstallation} in location ${wellLocation}.`,
+//       data: location,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({
+//       success: false,
+//       message:
+//         error.message ||
+//         "An error occurred while updating the well installation.",
+//     });
+//   }
+// };
+
 export const addWellTypeAndNumber = async (req, res) => {
   try {
     const {
       organizationName,
       wellLocation,
       wellInstallation,
-      wellType,
       wellNumber,
+      wellType,
     } = req.body;
 
-    console.log("Request Body:", req.body);
-
-    // Validate if all required fields are provided
+    // Validate if required fields are provided
     if (
       !organizationName ||
       !wellLocation ||
       !wellInstallation ||
-      !wellType ||
-      !wellNumber
+      !wellNumber ||
+      !wellType
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "Organization Name, Well Location, Well Installation, Well Type, and Well Number are required",
+          "Organization Name, Well Location, Well Installation, Well Number, and Well Type are required.",
       });
     }
 
+    // Find the well associated with this organization
     let well = await Well.findOne({ organizationName });
 
     if (!well) {
       return res.status(404).json({
         success: false,
-        message: `Well for organization ${organizationName} not found. Please add a well first.`,
+        message: `Well for organization ${organizationName} not found.`,
       });
     }
 
@@ -202,25 +296,44 @@ export const addWellTypeAndNumber = async (req, res) => {
 
     // Find the installation within the location
     const installation = location.wellInstallations.find(
-      (inst) => inst.wellInstallation === wellInstallation
+      (inst) => inst.installationName === wellInstallation
     );
 
     if (!installation) {
       return res.status(404).json({
         success: false,
-        message: `Installation ${wellInstallation} not found in the location ${wellLocation}.`,
+        message: `Installation ${wellInstallation} not found in location ${wellLocation}. Please add the installation first.`,
       });
     }
 
-    // Add the wellType and wellNumber to the wells array for this installation
-    installation.wells.push({ wellType, wellNumber });
+    // Check if the well number already exists for this installation
+    const wellNumberExists = installation.wellNumber.includes(wellNumber);
+    if (wellNumberExists) {
+      return res.status(400).json({
+        success: false,
+        message: `Well Number ${wellNumber} already exists for the installation ${wellInstallation} in location ${wellLocation}.`,
+      });
+    }
 
+    // Check if the wellType already exists for this specific installation
+    if (installation.wellTypes.includes(wellType)) {
+      return res.status(400).json({
+        success: false,
+        message: `Well Type ${wellType} already exists for the installation ${wellInstallation} in location ${wellLocation}.`,
+      });
+    }
+
+    // Add the wellNumber and wellType
+    installation.wellNumber.push(wellNumber); // Add the new well number
+    installation.wellTypes.push(wellType); // Add the new well type
+
+    // Save the updated well document
     await well.save();
 
     return res.status(200).json({
       success: true,
-      message: `Well Type ${wellType} and Well Number ${wellNumber} added successfully to Installation ${wellInstallation} at Location ${wellLocation}`,
-      data: installation,
+      message: `Well Number and Well Type added successfully for installation ${wellInstallation} in location ${wellLocation}.`,
+      data: location,
     });
   } catch (error) {
     console.log(error);
@@ -228,7 +341,7 @@ export const addWellTypeAndNumber = async (req, res) => {
       success: false,
       message:
         error.message ||
-        "An error occurred while adding the well type and number",
+        "An error occurred while updating the well installation.",
     });
   }
 };
