@@ -268,7 +268,7 @@ export const registerUser = async (req, res) => {
       newUser.contactNumber,
       newUser.email,
       newUser.department,
-      manager.email // Send notification to the manager's email
+      manager.email,
     );
 
     res.status(201).json({
@@ -276,37 +276,6 @@ export const registerUser = async (req, res) => {
       message:
         "User registered successfully. Waiting for approval by Manager and Owner",
     });
-
-    // // Send notification to manager for approval
-    // await sendNotificationToManager(
-    //   newUser.username,
-    //   newUser.employeeID,
-    //   newUser.contactNumber,
-    //   newUser.email,
-    //   newUser.department,
-    //   process.env.MANAGER_MAIL
-    // );
-
-    // res.status(201).json({
-    //   success: true,
-    //   message:
-    //     "User registered successfully. Waiting for approval by Manager and Owner",
-    //   // data: {
-    //   //   _id: newUser._id,
-    //   //   username: newUser.username,
-    //   //   email: newUser.email,
-    //   //   contactNumber: newUser.contactNumber,
-    //   //   employeeID: newUser.employeeID,
-    //   //   organizationName: newUser.organizationName,
-    //   //   department: newUser.department,
-    //   //   roleInRTMS: newUser.roleInRTMS,
-    //   //   idCardPhoto: newUser.idCardPhoto,
-    //   //   passportPhoto: newUser.passportPhoto,
-    //   // },
-    // });
-
-
-
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -347,6 +316,19 @@ export const approveUserByManager = async (req, res) => {
     user.isApprovedByManager = true;
     await user.save();
 
+    //find the Organization of the Organization
+    const owner = await Users.findOne({
+      organizationName,
+      roleInRTMS: "owner",
+    });
+
+    if (!owner) {
+      return res.status(404).json({
+        success: false,
+        message: "No Owner found for this Organization",
+      });
+    }
+
     //send notifications to owner for approval
     await sendNotificationToOwner(
       user.username,
@@ -354,7 +336,7 @@ export const approveUserByManager = async (req, res) => {
       user.contactNumber,
       user.email,
       user.department,
-      process.env.OWNER_MAIL
+      owner.email,
     );
 
     res.status(200).json({
@@ -400,12 +382,26 @@ export const approveUserByOwner = async (req, res) => {
     user.isApprovedByManager = true;
     await user.save();
 
+    // Fetch the manager for the user's organization
+    const manager = await Users.findOne({
+      organizationName: user.organizationName,
+      roleInRTMS: 'manager',
+    });
+
+    if (!manager) {
+      return res.status(404).json({
+        success: false,
+        message: "Manager not found for the organization",
+      });
+    }
+
     // Check if user is also approved by owner
     if (user.isApprovedByOwner) {
       await sendPasswordToUser(user);
       await sendApprovedNotifactionToManager(
         user.employeeID,
-        "kk2757910@gmail.com"
+        // "kk2757910@gmail.com"
+        manager.email,
       );
       return res.status(200).json({
         success: true,
@@ -758,7 +754,7 @@ export const loginUser = async (req, res) => {
       // user, //to all user details
       message: "User logged in successfully",
       token,
-      data:{
+      data: {
         _id: user._id,
         username: user.username,
         email: user.email,
@@ -769,8 +765,7 @@ export const loginUser = async (req, res) => {
         role: user.roleInRTMS,
         idCard: user.idCardPhoto,
         passport: user.passportPhoto,
-      }
-      
+      },
     });
 
     // Now wait for OTP verification step (implement verification endpoint)
