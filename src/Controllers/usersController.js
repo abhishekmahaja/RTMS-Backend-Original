@@ -248,33 +248,65 @@ export const registerUser = async (req, res) => {
       passportPhoto: passportPhotoRes.secure_url,
     });
 
-    // Send notification to manager for approval
+    // Find the manager of the organization
+    const manager = await Users.findOne({
+      organizationName,
+      roleInRTMS: "manager",
+    });
+
+    if (!manager) {
+      return res.status(404).json({
+        success: false,
+        message: "No manager found for this organization",
+      });
+    }
+
+    // Send notification to the manager
     await sendNotificationToManager(
       newUser.username,
       newUser.employeeID,
       newUser.contactNumber,
       newUser.email,
       newUser.department,
-      process.env.MANAGER_MAIL
+      manager.email // Send notification to the manager's email
     );
 
     res.status(201).json({
       success: true,
       message:
         "User registered successfully. Waiting for approval by Manager and Owner",
-      // data: {
-      //   _id: newUser._id,
-      //   username: newUser.username,
-      //   email: newUser.email,
-      //   contactNumber: newUser.contactNumber,
-      //   employeeID: newUser.employeeID,
-      //   organizationName: newUser.organizationName,
-      //   department: newUser.department,
-      //   roleInRTMS: newUser.roleInRTMS,
-      //   idCardPhoto: newUser.idCardPhoto,
-      //   passportPhoto: newUser.passportPhoto,
-      // },
     });
+
+    // // Send notification to manager for approval
+    // await sendNotificationToManager(
+    //   newUser.username,
+    //   newUser.employeeID,
+    //   newUser.contactNumber,
+    //   newUser.email,
+    //   newUser.department,
+    //   process.env.MANAGER_MAIL
+    // );
+
+    // res.status(201).json({
+    //   success: true,
+    //   message:
+    //     "User registered successfully. Waiting for approval by Manager and Owner",
+    //   // data: {
+    //   //   _id: newUser._id,
+    //   //   username: newUser.username,
+    //   //   email: newUser.email,
+    //   //   contactNumber: newUser.contactNumber,
+    //   //   employeeID: newUser.employeeID,
+    //   //   organizationName: newUser.organizationName,
+    //   //   department: newUser.department,
+    //   //   roleInRTMS: newUser.roleInRTMS,
+    //   //   idCardPhoto: newUser.idCardPhoto,
+    //   //   passportPhoto: newUser.passportPhoto,
+    //   // },
+    // });
+
+
+
   } catch (error) {
     return res.status(500).json({
       success: false,
