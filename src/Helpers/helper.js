@@ -166,6 +166,40 @@ export const sendNotificationToOwner = async (
   }
 };
 
+// Notify the owner about the rejected user
+export const sendRejectNotificationToOwner = async (
+  username,
+  employeeID,
+  contactNumber,
+  userEmail,
+  department,
+  ownerEmail
+) => {
+  try {
+    const RejectMailOptions = {
+      from: process.env.AUTH_EMAIL,
+      to: ownerEmail, 
+      // subject: `User Rejected by ${managerName}`,
+      subject: `User Rejected by Manager`,
+      html: `<p>A user has been rejected by the manager. User details:</p>
+           <ul>
+             <li><strong>Username:</strong> ${username}</li>
+             <li><strong>Email:</strong> ${userEmail}</li>
+             <li><strong>Contact Number:</strong> ${contactNumber}</li>
+             <li><strong>Employee ID:</strong> ${employeeID}</li>
+             <li><strong>Department:</strong> ${department}</li>
+             <li><strong>Rejected by Manager:</strong> ${managerName}</li>
+             <li><strong>Manager's Email:</strong> ${managerEmail}</li>
+           </ul>`,
+    };
+
+    // Send the email
+    await transporter.sendMail(RejectMailOptions);
+  } catch (err) {
+    console.log("Failed to send rejection notification to owner and manager");
+  }
+};
+
 //send password to user
 export const sendPasswordToUser = async (user) => {
   const newPassword = generatePassword();
@@ -229,6 +263,30 @@ export const sendApprovedNotifactionToManager = async (
   }
 };
 
+//Reject Manager mail to Owner and user
+export const sendRejectNotifactionToManager = async (
+  employeeID,
+  ownerEmail
+) => {
+  // Email options
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: ownerEmail,
+    subject: "Your Account Reject",
+    html: `<p>This Employee id Reject by Manager ${employeeID}`,
+  };
+
+  try {
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    // Send SMS
+  } catch (error) {
+    console.error("Error sending password:", error);
+    throw new Error("Failed to send password");
+  }
+};
+
 //upload a image
 export const uploadCloudinary = async (file, folder, height, quality) => {
   const options = { folder };
@@ -279,7 +337,7 @@ export const sendNewCreateOrganization = async (
   organizationName,
   contactNumber,
   email,
-  password,
+  password
 ) => {
   try {
     const OrgOwnerMailOptions = {
@@ -299,6 +357,6 @@ export const sendNewCreateOrganization = async (
 
     await transporter.sendMail(OrgOwnerMailOptions);
   } catch (err) {
-    console.log("Mail not send to Org Owner",err);
+    console.log("Mail not send to Org Owner", err);
   }
 };

@@ -8,6 +8,7 @@ import {
   sendOTPVerificationLogin,
   sendPasswordResetEmail,
   sendPasswordToUser,
+  sendRejectNotificationToOwner,
   uploadCloudinary,
 } from "../Helpers/helper.js";
 import Users from "../Models/userModel.js";
@@ -312,13 +313,9 @@ export const approveUserByManager = async (req, res) => {
       });
     }
 
-    // Set user's approval status
-    user.isApprovedByManager = true;
-    await user.save();
-
     //find the Organization of the Organization
     const owner = await Users.findOne({
-      organizationName,
+      organizationName: user.organizationName,
       roleInRTMS: "owner",
     });
 
@@ -338,6 +335,10 @@ export const approveUserByManager = async (req, res) => {
       user.department,
       owner.email,
     );
+
+     // Set user's approval status
+     user.isApprovedByManager = true;
+     await user.save();
 
     res.status(200).json({
       success: true,
@@ -377,11 +378,6 @@ export const approveUserByOwner = async (req, res) => {
       });
     }
 
-    // Set user's approval status
-    user.isApprovedByOwner = true;
-    user.isApprovedByManager = true;
-    await user.save();
-
     // Fetch the manager for the user's organization
     const manager = await Users.findOne({
       organizationName: user.organizationName,
@@ -400,14 +396,14 @@ export const approveUserByOwner = async (req, res) => {
       await sendPasswordToUser(user);
       await sendApprovedNotifactionToManager(
         user.employeeID,
-        // "kk2757910@gmail.com"
         manager.email,
       );
-      return res.status(200).json({
-        success: true,
-        message: "User approved by Owner and Manager and password sent",
-      });
     }
+
+    // Set user's approval status
+    user.isApprovedByOwner = true;
+    user.isApprovedByManager = true;
+    await user.save();
 
     res.status(200).json({
       success: true,
@@ -444,22 +440,36 @@ export const rejectUserByManager = async (req, res) => {
       });
     }
 
+    //find the Owner of the Organization
+    const owner = await Users.findOne({
+      organizationName: user.organizationName,
+      roleInRTMS: "owner",
+    });
+
+    if (!owner) {
+      return res.status(404).json({
+        success: false,
+        message: "No Owner found for this Organization",
+      });
+    }
+
     //set user reject status
-    const userDelete = await Users.deleteOne({ employeeID: employeeID });
+    // const userDelete = await Users.deleteOne({ employeeID: employeeID });
+    await Users.deleteOne({ employeeID: employeeID });
 
     //send notifications to owner for approval
-    await sendNotificationToOwner(
+    await sendRejectNotificationToOwner(
       user.username,
       user.employeeID,
       user.contactNumber,
       user.email,
       user.department,
-      process.env.OWNER_MAIL
+      owner.email,
     );
 
     res.status(200).json({
       success: true,
-      message: "USer Reject By Manger",
+      message: "User Reject By Manger",
     });
   } catch (error) {
     res.status(500).json({
@@ -481,6 +491,7 @@ export const rejectUserByOwner = async (req, res) => {
       });
     }
     const user = await Users.findOne({ employeeID: employeeID });
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -488,8 +499,32 @@ export const rejectUserByOwner = async (req, res) => {
       });
     }
 
+    //find the manager of the Organization
+    const manager = await Users.findOne({
+      organizationName: user.organizationName,
+      roleInRTMS: "manager",
+    });
+    
+    if(!manager) {
+      return res.status(404).json({
+        success: false,
+        message: "No Manager Found For the Organization",
+      });
+    }
+
     //set user reject status
-    const userDelete = await Users.deleteOne({ employeeID: employeeID });
+    // const userDelete = await Users.deleteOne({ employeeID: employeeID });
+    await Users.deleteOne({ employeeID: employeeID });
+
+    //send notifications to manager for Reject User
+    await sendRejectNotifactionToManager(
+      user.username,
+      user.employeeID,
+      user.contactNumber,
+      user.email,
+      user.department,
+      manager.email,
+    );
 
     res.status(200).json({
       success: true,
