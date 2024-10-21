@@ -43,7 +43,7 @@ const organizationSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      default: "organization Subtitle",
+      // default: "organization Subtitle",
     },
     address: {
       type: String,

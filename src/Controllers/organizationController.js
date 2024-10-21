@@ -649,13 +649,15 @@ export const updateApprovalChain = async (req, res) => {
 //Delete Approval chain
 export const deleteApprovalChain = async (req, res) => {
   try {
-    const { organizationName, departmentName, action, level1, level2 } = req.body;
+    const { organizationName, departmentName, action, level1, level2 } =
+      req.body;
 
     // Check if required fields are provided
     if (!organizationName || !departmentName || !action || !level1 || !level2) {
       return res.status(400).json({
         success: false,
-        message: "Organization name, department name, action, level1, and level2 are required",
+        message:
+          "Organization name, department name, action, level1, and level2 are required",
       });
     }
 
@@ -691,7 +693,8 @@ export const deleteApprovalChain = async (req, res) => {
 
     // Find the index of the approval chain to be deleted
     const approvalChainIndex = department.approvalChain.findIndex(
-      (app) => app.action === action && app.level1 === level1 && app.level2 === level2
+      (app) =>
+        app.action === action && app.level1 === level1 && app.level2 === level2
     );
 
     // If the approval chain entry is not found, return an error
@@ -1061,7 +1064,7 @@ export const generateOtpOragnization = async (req, res) => {
       email,
       contactNumber,
       emailOtp,
-      contactOtp: emailOtp, // Using the same OTP for both email and contact number
+      contactOtp: emailOtp,
     });
 
     //send OTP via Email and SMS
@@ -1087,6 +1090,138 @@ export const generateOtpOragnization = async (req, res) => {
 };
 
 //Admin Create Organization
+// export const createOrganization = async (req, res) => {
+//   try {
+//     const {
+//       organizationName,
+//       username,
+//       password,
+//       email,
+//       contactNumber,
+//       // contactOtp,
+//       emailOtp,
+//     } = req.body;
+
+//     //checking if all fileds are provided
+//     if (
+//       !organizationName ||
+//       !username ||
+//       !password ||
+//       !email ||
+//       !contactNumber ||
+//       // !contactOtp ||
+//       !emailOtp
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All Fields are Required",
+//       });
+//     }
+
+//     //checking if Organization is Allready created
+//     const existingOrganization = await Organization.findOne({
+//       $or: [{ email }, { username }, { organizationName }],
+//     });
+//     if (existingOrganization) {
+//       // Check which field is causing the duplicate issue
+//       let errorMessage = "Organization already exists.";
+//       if (existingOrganization.email === email) {
+//         errorMessage = `Email ${email} is already registered.`;
+//       } else if (existingOrganization.username === username) {
+//         errorMessage = `Username ${username} is already taken.`;
+//       } else if (existingOrganization.organizationName === organizationName) {
+//         errorMessage = `Organization name ${organizationName} is already in use.`;
+//       }
+//       return res.status(400).json({
+//         success: false,
+//         message: errorMessage,
+//       });
+//     }
+
+//     //Fetching the most Recent OTP
+//     const recentOtp = await OTP.findOne({ email }).sort({ createAt: -1 });
+
+//     if (!recentOtp) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "OTP not Found",
+//       });
+//     }
+
+//     console.log("Recent OTP from DB:", recentOtp.emailOtp);
+//     console.log("Provided email OTP:", emailOtp);
+
+//     //validing OTPs
+//     if (
+//       // contactOtp !== recentOtp.contactOtp ||
+//       emailOtp !== recentOtp.emailOtp
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Provided OTPs do not match the most recent OTPs",
+//       });
+//     }
+
+//     await OTP.deleteOne({ emailOtp: emailOtp });
+
+//     //organization Created by Admin
+//     const newOrganization = await Organization.create({
+//       username,
+//       organizationName,
+//       email,
+//       contactNumber,
+//     });
+
+//     //hash the password
+//     const saltRounds = 10;
+//     const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+//     console.log(
+//       "employee id",
+//       `${organizationName.substring(0, 4).toUpperCase()}_OWN`
+//     );
+
+//     // Creating new user for organization
+//     const newUser = await Users.create({
+//       username,
+//       email,
+//       contactNumber,
+//       organizationName,
+//       roleInRTMS: "owner",
+//       employeeID: `${organizationName.substring(0, 4).toUpperCase()}_OWN`,
+//       password: hashedPassword,
+//       isApprovedByManager: true,
+//       isApprovedByOwner: true,
+//     });
+
+//     //send Notification to Owner to created organization
+//     await sendNewCreateOrganization(
+//       newOrganization.username,
+//       newOrganization.organizationName,
+//       newUser.contactNumber,
+//       newUser.email,
+//       newUser.password,
+//       newUser
+//     );
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Organization Created successfully.",
+//       data: {
+//         _id: newOrganization._id,
+//         username: newOrganization.username,
+//         email: newOrganization.email,
+//         contactNumber: newOrganization.contactNumber,
+//         organizationName: newOrganization.organizationName,
+//       },
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: error.message || "Failed to register user",
+//     });
+//   }
+// };
 export const createOrganization = async (req, res) => {
   try {
     const {
@@ -1095,18 +1230,17 @@ export const createOrganization = async (req, res) => {
       password,
       email,
       contactNumber,
-      // contactOtp,
       emailOtp,
+      subtitlename, // Optional subtitle
     } = req.body;
 
-    //checking if all fileds are provided
+    // Checking if all mandatory fields are provided
     if (
       !organizationName ||
       !username ||
       !password ||
       !email ||
       !contactNumber ||
-      // !contactOtp ||
       !emailOtp
     ) {
       return res.status(400).json({
@@ -1115,12 +1249,12 @@ export const createOrganization = async (req, res) => {
       });
     }
 
-    //checking if Organization is Allready created
+    // Check if Organization or User already exists
     const existingOrganization = await Organization.findOne({
       $or: [{ email }, { username }, { organizationName }],
     });
+
     if (existingOrganization) {
-      // Check which field is causing the duplicate issue
       let errorMessage = "Organization already exists.";
       if (existingOrganization.email === email) {
         errorMessage = `Email ${email} is already registered.`;
@@ -1135,7 +1269,7 @@ export const createOrganization = async (req, res) => {
       });
     }
 
-    //Fetching the most Recent OTP
+    // Fetching the most recent OTP
     const recentOtp = await OTP.findOne({ email }).sort({ createAt: -1 });
 
     if (!recentOtp) {
@@ -1145,40 +1279,46 @@ export const createOrganization = async (req, res) => {
       });
     }
 
-    // console.log("Recent OTP from DB:", recentOtp.emailOtp);
-    // console.log("Provided email OTP:", emailOtp);
-
-    //validing OTPs
-    if (
-      // contactOtp !== recentOtp.contactOtp ||
-      emailOtp !== recentOtp.emailOtp
-    ) {
+    // Validate the email OTP
+    if (emailOtp !== recentOtp.emailOtp) {
       return res.status(400).json({
         success: false,
-        message: "Provided OTPs do not match the most recent OTPs",
+        message: "Provided OTP does not match the most recent OTP",
       });
     }
 
+    // Delete the OTP after validation
     await OTP.deleteOne({ emailOtp: emailOtp });
 
-    //organization Created by Admin
+    // Generate subtitlename if not provided
+    const generatedSubtitlename =
+      subtitlename || `${organizationName}-subtitle`;
+
+    // Check if the generated or provided subtitlename already exists
+    const existingSubtitle = await Organization.findOne({
+      subtitlename: generatedSubtitlename,
+    });
+    if (existingSubtitle) {
+      return res.status(400).json({
+        success: false,
+        message: `Subtitle name ${generatedSubtitlename} is already in use.`,
+      });
+    }
+
+    // Create the organization
     const newOrganization = await Organization.create({
       username,
       organizationName,
       email,
-      contactNumber, // Add contactNumber and email while creating organization
+      contactNumber,
+      subtitlename: generatedSubtitlename,
     });
 
-    //hash the password
-    const saltRounds = 10; // Number of salt rounds for bcrypt
+    // Hash the password
+    const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // console.log(
-    //   "employee id",
-    //   `${organizationName.substring(0, 4).toUpperCase()}_OWN`
-    // );
-
-    // Creating new user for organization
+    // Creating new user for the organization (Owner)
     const newUser = await Users.create({
       username,
       email,
@@ -1191,18 +1331,17 @@ export const createOrganization = async (req, res) => {
       isApprovedByOwner: true,
     });
 
-    
-
-    //send Notification to Owner to created organization
+    // Send notification to the owner
     await sendNewCreateOrganization(
       newOrganization.username,
       newOrganization.organizationName,
       newUser.contactNumber,
       newUser.email,
-      newUser.password
-      // newUser
+      newUser.password,
+      newUser
     );
 
+    // Response for successful creation
     res.status(201).json({
       success: true,
       message: "Organization Created successfully.",
@@ -1212,19 +1351,13 @@ export const createOrganization = async (req, res) => {
         email: newOrganization.email,
         contactNumber: newOrganization.contactNumber,
         organizationName: newOrganization.organizationName,
+        subtitlename: newOrganization.subtitlename, // Include subtitlename in the response
       },
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Duplicate key error. Please check email or organization name.",
-      });
-    }
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to register user",
+      message: error.message || "Failed to register organization",
     });
   }
 };
