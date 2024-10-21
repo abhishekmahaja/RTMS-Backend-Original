@@ -8,7 +8,9 @@ import {
   sendOTPVerificationLogin,
   sendPasswordResetEmail,
   sendPasswordToUser,
+  sendRejectNotifactionToManager,
   sendRejectNotificationToOwner,
+  sendRejectNotificationToUser,
   uploadCloudinary,
 } from "../Helpers/helper.js";
 import Users from "../Models/userModel.js";
@@ -148,8 +150,11 @@ export const registerUser = async (req, res) => {
       organizationName,
       department,
       roleInRTMS,
+      // contactOtp,
       emailOtp,
     } = req.body;
+
+    // console.log("req.ddd", req.body);
 
     const idCardPhoto = req.files?.idCardPhoto;
     const passportPhoto = req.files?.passportPhoto;
@@ -163,6 +168,7 @@ export const registerUser = async (req, res) => {
       !organizationName ||
       !department ||
       !roleInRTMS ||
+      // !contactOtp ||
       !emailOtp ||
       !idCardPhoto ||
       !passportPhoto
@@ -194,7 +200,10 @@ export const registerUser = async (req, res) => {
     }
 
     // Validating OTPs
-    if (emailOtp !== recentOtp.emailOtp) {
+    if (
+      // contactOtp !== recentOtp.contactOtp ||
+      emailOtp !== recentOtp.emailOtp
+    ) {
       return res.status(400).json({
         success: false,
         message: "Provided OTP does not match the most recent OTP",
@@ -279,11 +288,10 @@ export const registerUser = async (req, res) => {
 
     // If the registered user is an employee, notify both manager and owner
     if (roleInRTMS === "employee") {
-      console.log(
-        "Sending notification to manager and owner for employee:",
-        newUser.username
-      );
-
+      // console.log(
+      //   "Sending notification to manager and owner for employee:",
+      //   newUser.username
+      // );
       await sendNotificationToManager(
         newUser.username,
         newUser.employeeID,
@@ -318,15 +326,17 @@ export const approveUserByManager = async (req, res) => {
   try {
     const { employeeID } = req.body;
 
+    // Validate if employeeID is provided
     if (!employeeID) {
       return res.status(400).json({
         success: false,
-        message: "User ID is required",
+        message: "Employee ID is required",
       });
     }
-    const user = await Users.findOne({ employeeID: employeeID });
 
-    // return res.json({user})
+    // Find user by employeeID
+    const user = await Users.findOne({ employeeID });
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -334,14 +344,15 @@ export const approveUserByManager = async (req, res) => {
       });
     }
 
+    // Check if user is already approved by the manager
     if (user.isApprovedByManager) {
-      return res.json({
+      return res.status(400).json({
         success: false,
-        message: "User already approved",
+        message: "User already approved by manager",
       });
     }
 
-    //find the Organization of the Organization
+    // Find the owner of the organization
     const owner = await Users.findOne({
       organizationName: user.organizationName,
       roleInRTMS: "owner",
@@ -354,7 +365,10 @@ export const approveUserByManager = async (req, res) => {
       });
     }
 
-    //send notifications to owner for approval
+    // console.log("Organization Name:", user.organizationName);
+    // console.log("Owner Email:", owner.email);
+
+    // Send notification to the owner for further approval
     await sendNotificationToOwner(
       user.username,
       user.employeeID,
@@ -364,15 +378,16 @@ export const approveUserByManager = async (req, res) => {
       owner.email
     );
 
-    // Set user's approval status
+    // Mark the user as approved by the manager
     user.isApprovedByManager = true;
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: "User approved by manager and Now Wait for Owner Approvel",
+      message: "User approved by manager. Waiting for owner approval.",
     });
   } catch (error) {
+    console.error("Error approving user by manager:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Failed to approve user by manager",
@@ -419,16 +434,16 @@ export const approveUserByOwner = async (req, res) => {
       });
     }
 
+    // Set user's approval status
+    user.isApprovedByOwner = true;
+    user.isApprovedByManager = true;
+    await user.save();
+
     // Check if user is also approved by owner
     if (user.isApprovedByOwner) {
       await sendPasswordToUser(user);
       await sendApprovedNotifactionToManager(user.employeeID, manager.email);
     }
-
-    // Set user's approval status
-    user.isApprovedByOwner = true;
-    user.isApprovedByManager = true;
-    await user.save();
 
     res.status(200).json({
       success: true,
@@ -448,29 +463,32 @@ export const rejectUserByManager = async (req, res) => {
   try {
     const { employeeID } = req.body;
 
+    // Validate if employeeID is provided
     if (!employeeID) {
       return res.status(400).json({
         success: false,
-        message: "user ID is required",
+        message: "Employee ID is required",
       });
     }
 
-    const user = await Users.findOne({ employeeID: employeeID });
+    // Find user by employeeID
+    const user = await Users.findOne({ employeeID });
 
-    //return res.json({user})
+    // Check if user exists
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not Found",
+        message: "User not found",
       });
     }
 
-    //find the Owner of the Organization
+    // Find the owner of the organization
     const owner = await Users.findOne({
       organizationName: user.organizationName,
       roleInRTMS: "owner",
     });
 
+    // Check if an owner is found
     if (!owner) {
       return res.status(404).json({
         success: false,
@@ -478,11 +496,10 @@ export const rejectUserByManager = async (req, res) => {
       });
     }
 
-    //set user reject status
-    // const userDelete = await Users.deleteOne({ employeeID: employeeID });
-    await Users.deleteOne({ employeeID: employeeID });
+    // Delete the user record from the database
+    await Users.deleteOne({ employeeID });
 
-    //send notifications to owner for approval
+    // Send notifications to both the owner and the user
     await sendRejectNotificationToOwner(
       user.username,
       user.employeeID,
@@ -492,14 +509,21 @@ export const rejectUserByManager = async (req, res) => {
       owner.email
     );
 
+    // console.log("owner ", owner.email, sendRejectNotificationToOwner);
+
+    //notify to user
+    await sendRejectNotificationToUser(user.username, user.email);
+    // console.log("user ", user.email, sendRejectNotificationToUser);
+
     res.status(200).json({
       success: true,
-      message: "User Reject By Manger",
+      message: "User rejected by manager and notification sent",
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to Reject user by manager",
+      message: error.message || "Failed to reject user by manager",
     });
   }
 };
@@ -512,10 +536,11 @@ export const rejectUserByOwner = async (req, res) => {
     if (!employeeID) {
       return res.status(400).json({
         success: false,
-        message: "User ID is required",
+        message: "Employee ID is required",
       });
     }
-    const user = await Users.findOne({ employeeID: employeeID });
+
+    const user = await Users.findOne({ employeeID });
 
     if (!user) {
       return res.status(404).json({
@@ -524,7 +549,7 @@ export const rejectUserByOwner = async (req, res) => {
       });
     }
 
-    //find the manager of the Organization
+    // Find the manager of the organization
     const manager = await Users.findOne({
       organizationName: user.organizationName,
       roleInRTMS: "manager",
@@ -537,11 +562,17 @@ export const rejectUserByOwner = async (req, res) => {
       });
     }
 
-    //set user reject status
-    // const userDelete = await Users.deleteOne({ employeeID: employeeID });
-    await Users.deleteOne({ employeeID: employeeID });
+    if (!manager.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Manager does not have a valid email",
+      });
+    }
 
-    //send notifications to manager for Reject User
+    // Delete the user
+    await Users.deleteOne({ employeeID });
+
+    // Send notifications to manager and user
     await sendRejectNotifactionToManager(
       user.username,
       user.employeeID,
@@ -551,15 +582,18 @@ export const rejectUserByOwner = async (req, res) => {
       manager.email
     );
 
+    // Notify the user
+    await sendRejectNotificationToUser(user.username, user.email);
+
     res.status(200).json({
       success: true,
-      message: "User Reject by Owner",
+      message: "User rejected by Owner and notification sent",
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error rejecting user by owner:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to approve user by Owner",
+      message: error.message || "Failed to reject user by Owner",
     });
   }
 };

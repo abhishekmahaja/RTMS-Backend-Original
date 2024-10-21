@@ -114,10 +114,10 @@ export const sendNotificationToManager = async (
   ownerEmail
 ) => {
   try {
-  // console.log(`Sending email to manager (${managerEmail}) and owner (${ownerEmail})`);
+    // console.log(`Sending email to manager (${managerEmail}) and owner (${ownerEmail})`);
     const managerMailOptions = {
       from: process.env.AUTH_EMAIL,
-      to: [managerEmail, ownerEmail], 
+      to: [managerEmail, ownerEmail],
       subject: "New User Registration Awaiting Approval",
       html: `<p>A new user has been registered and is awaiting approval. User details:</p>
            <ul>
@@ -147,25 +147,27 @@ export const sendNotificationToOwner = async (
   ownerEmail
 ) => {
   try {
-    const OwnerMailOptions = {
+    const ownerMailOptions = {
       from: process.env.AUTH_EMAIL,
       to: ownerEmail,
       subject:
-        "New User Registration Awaiting Approval and it is already approve by Manager",
-      html: `<p>A new user has been registered and has been approved by the Manager. User details:</p>
-           <ul>
-             <li>Username: ${username}</li>
-             <li>Email: ${email}</li>
-             <li>Contact Number: ${contactNumber}</li>
-             <li>Employee ID: ${employeeID}</li>
-             <li>Department: ${department}</li>
-           </ul>
-           <p>Please review and approve the request.</p>`,
+        "New User Registration: Manager Approval Received, Pending Owner Approval",
+      html: `<p>A new user has been registered and approved by the Manager. Please review and approve. Below are the user details:</p>
+            <ul>
+              <li>Username: ${username}</li>
+              <li>Email: ${email}</li>
+              <li>Contact Number: ${contactNumber}</li>
+              <li>Employee ID: ${employeeID}</li>
+              <li>Department: ${department}</li>
+            </ul>
+            <p>Please review and approve the request.</p>`,
     };
 
-    await transporter.sendMail(OwnerMailOptions);
+    // Send the email using the transporter
+    await transporter.sendMail(ownerMailOptions);
+    console.log("Notification email sent to the owner:", ownerEmail);
   } catch (err) {
-    console.log("Mail not send to Owner");
+    console.error("Failed to send notification email to owner:", err);
   }
 };
 
@@ -174,32 +176,86 @@ export const sendRejectNotificationToOwner = async (
   username,
   employeeID,
   contactNumber,
-  userEmail,
+  email,
   department,
   ownerEmail
 ) => {
   try {
-    const RejectMailOptions = {
+    const ownerMailOptions = {
       from: process.env.AUTH_EMAIL,
-      to: ownerEmail, 
-      // subject: `User Rejected by ${managerName}`,
-      subject: `User Rejected by Manager`,
-      html: `<p>A user has been rejected by the manager. User details:</p>
-           <ul>
-             <li><strong>Username:</strong> ${username}</li>
-             <li><strong>Email:</strong> ${userEmail}</li>
-             <li><strong>Contact Number:</strong> ${contactNumber}</li>
-             <li><strong>Employee ID:</strong> ${employeeID}</li>
-             <li><strong>Department:</strong> ${department}</li>
-             <li><strong>Rejected by Manager:</strong> ${managerName}</li>
-             <li><strong>Manager's Email:</strong> ${managerEmail}</li>
-           </ul>`,
+      to: ownerEmail,
+      subject: "User Rejection Notification from Manager",
+      html: `<p>A user has been rejected by the Manager. Below are the user details:</p>
+            <ul>
+              <li>Username: ${username}</li>
+              <li>Email: ${email}</li>
+              <li>Contact Number: ${contactNumber}</li>
+              <li>Employee ID: ${employeeID}</li>
+              <li>Department: ${department}</li>
+            </ul>
+            <p>The user has been removed from the system.</p>`,
     };
 
-    // Send the email
-    await transporter.sendMail(RejectMailOptions);
+    await transporter.sendMail(ownerMailOptions);
+    console.log("Rejection notification email sent to owner:", ownerEmail);
   } catch (err) {
-    console.log("Failed to send rejection notification to owner and manager");
+    console.error("Failed to send rejection notification to owner:", err);
+  }
+};
+
+// Notify the owner when a user's registration is rejected by the manager
+export const sendRejectNotifactionToManager = async (
+  username,
+  employeeID,
+  contactNumber,
+  email,
+  department,
+  ownerEmail
+) => {
+  // Email options
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: ownerEmail,
+    subject: "User Registration Rejected by Manager",
+    html: `<p>The following user registration has been rejected by the manager:</p>
+           <ul>
+             <li>Username: ${username}</li>
+              <li>Email: ${email}</li>
+              <li>Contact Number: ${contactNumber}</li>
+              <li>Employee ID: ${employeeID}</li>
+              <li>Department: ${department}</li>
+           </ul>
+           <p>If you have any concerns, please contact the manager.</p>`,
+  };
+
+  try {
+    // Send email notification to the owner
+    await transporter.sendMail(mailOptions);
+
+    // Here you could add SMS logic, if applicable
+    // console.log("Rejection notification email sent to owner:", ownerEmail);
+  } catch (error) {
+    console.error("Error sending rejection notification to owner:", error);
+    throw new Error("Failed to send rejection notification to owner");
+  }
+};
+
+//notify the user to reject
+export const sendRejectNotificationToUser = async (username, userEmail) => {
+  try {
+    const userMailOptions = {
+      from: process.env.AUTH_EMAIL,
+      to: userEmail,
+      subject: "Registration Rejection Notification",
+      html: `<p>Dear ${username},</p>
+            <p>We regret to inform you that your registration has been rejected by the Manager/Owner. If you have any questions or concerns, please contact our support team.</p>
+            <p>Thank you for your understanding.</p>`,
+    };
+
+    await transporter.sendMail(userMailOptions);
+    // console.log("Rejection notification email sent to user:", userEmail);
+  } catch (err) {
+    console.error("Failed to send rejection notification to user:", err);
   }
 };
 
@@ -253,30 +309,6 @@ export const sendApprovedNotifactionToManager = async (
     to: managerEmail,
     subject: "Your Account Password",
     html: `<p>This Employee id approved by Owner ${employeeID}`,
-  };
-
-  try {
-    // Send email
-    await transporter.sendMail(mailOptions);
-
-    // Send SMS
-  } catch (error) {
-    console.error("Error sending password:", error);
-    throw new Error("Failed to send password");
-  }
-};
-
-//Reject Manager mail to Owner and user
-export const sendRejectNotifactionToManager = async (
-  employeeID,
-  ownerEmail
-) => {
-  // Email options
-  const mailOptions = {
-    from: process.env.AUTH_EMAIL,
-    to: ownerEmail,
-    subject: "Your Account Reject",
-    html: `<p>This Employee id Reject by Manager ${employeeID}`,
   };
 
   try {
