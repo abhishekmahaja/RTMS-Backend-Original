@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, "Email is required"],
-      unique: true,
+      // unique: true,
       validate: {
         validator: (v) => /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i.test(v),
         message: (props) => `${props.value} is not a valid email address!`,
