@@ -1057,7 +1057,7 @@ export const generateOtpOragnization = async (req, res) => {
     //   contactResult = await OTP.findOne({ contactOtp });
     // }
 
-    console.log("email", emailOtp);
+    // console.log("email", emailOtp);
 
     //create new OTP record
     const newOTP = await OTP.create({
@@ -1090,138 +1090,6 @@ export const generateOtpOragnization = async (req, res) => {
 };
 
 //Admin Create Organization
-// export const createOrganization = async (req, res) => {
-//   try {
-//     const {
-//       organizationName,
-//       username,
-//       password,
-//       email,
-//       contactNumber,
-//       // contactOtp,
-//       emailOtp,
-//     } = req.body;
-
-//     //checking if all fileds are provided
-//     if (
-//       !organizationName ||
-//       !username ||
-//       !password ||
-//       !email ||
-//       !contactNumber ||
-//       // !contactOtp ||
-//       !emailOtp
-//     ) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "All Fields are Required",
-//       });
-//     }
-
-//     //checking if Organization is Allready created
-//     const existingOrganization = await Organization.findOne({
-//       $or: [{ email }, { username }, { organizationName }],
-//     });
-//     if (existingOrganization) {
-//       // Check which field is causing the duplicate issue
-//       let errorMessage = "Organization already exists.";
-//       if (existingOrganization.email === email) {
-//         errorMessage = `Email ${email} is already registered.`;
-//       } else if (existingOrganization.username === username) {
-//         errorMessage = `Username ${username} is already taken.`;
-//       } else if (existingOrganization.organizationName === organizationName) {
-//         errorMessage = `Organization name ${organizationName} is already in use.`;
-//       }
-//       return res.status(400).json({
-//         success: false,
-//         message: errorMessage,
-//       });
-//     }
-
-//     //Fetching the most Recent OTP
-//     const recentOtp = await OTP.findOne({ email }).sort({ createAt: -1 });
-
-//     if (!recentOtp) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "OTP not Found",
-//       });
-//     }
-
-//     console.log("Recent OTP from DB:", recentOtp.emailOtp);
-//     console.log("Provided email OTP:", emailOtp);
-
-//     //validing OTPs
-//     if (
-//       // contactOtp !== recentOtp.contactOtp ||
-//       emailOtp !== recentOtp.emailOtp
-//     ) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Provided OTPs do not match the most recent OTPs",
-//       });
-//     }
-
-//     await OTP.deleteOne({ emailOtp: emailOtp });
-
-//     //organization Created by Admin
-//     const newOrganization = await Organization.create({
-//       username,
-//       organizationName,
-//       email,
-//       contactNumber,
-//     });
-
-//     //hash the password
-//     const saltRounds = 10;
-//     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-//     console.log(
-//       "employee id",
-//       `${organizationName.substring(0, 4).toUpperCase()}_OWN`
-//     );
-
-//     // Creating new user for organization
-//     const newUser = await Users.create({
-//       username,
-//       email,
-//       contactNumber,
-//       organizationName,
-//       roleInRTMS: "owner",
-//       employeeID: `${organizationName.substring(0, 4).toUpperCase()}_OWN`,
-//       password: hashedPassword,
-//       isApprovedByManager: true,
-//       isApprovedByOwner: true,
-//     });
-
-//     //send Notification to Owner to created organization
-//     await sendNewCreateOrganization(
-//       newOrganization.username,
-//       newOrganization.organizationName,
-//       newUser.contactNumber,
-//       newUser.email,
-//       newUser.password,
-//       newUser
-//     );
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Organization Created successfully.",
-//       data: {
-//         _id: newOrganization._id,
-//         username: newOrganization.username,
-//         email: newOrganization.email,
-//         contactNumber: newOrganization.contactNumber,
-//         organizationName: newOrganization.organizationName,
-//       },
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       success: false,
-//       message: error.message || "Failed to register user",
-//     });
-//   }
-// };
 export const createOrganization = async (req, res) => {
   try {
     const {
@@ -1351,7 +1219,7 @@ export const createOrganization = async (req, res) => {
         email: newOrganization.email,
         contactNumber: newOrganization.contactNumber,
         organizationName: newOrganization.organizationName,
-        subtitlename: newOrganization.subtitlename, // Include subtitlename in the response
+        subtitlename: newOrganization.subtitlename,
       },
     });
   } catch (error) {

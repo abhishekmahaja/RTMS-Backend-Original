@@ -110,14 +110,16 @@ export const sendNotificationToManager = async (
   contactNumber,
   email,
   department,
-  managerEmail
+  managerEmail,
+  ownerEmail
 ) => {
   try {
+  // console.log(`Sending email to manager (${managerEmail}) and owner (${ownerEmail})`);
     const managerMailOptions = {
       from: process.env.AUTH_EMAIL,
-      to: managerEmail,
+      to: [managerEmail, ownerEmail], 
       subject: "New User Registration Awaiting Approval",
-      html: `<p>A new user has been registered and has want to approval. User details:</p>
+      html: `<p>A new user has been registered and is awaiting approval. User details:</p>
            <ul>
              <li>Username: ${username}</li>
              <li>Email: ${email}</li>
@@ -129,8 +131,9 @@ export const sendNotificationToManager = async (
     };
 
     await transporter.sendMail(managerMailOptions);
+    // console.log("Email sent to both manager and owner.");
   } catch (err) {
-    console.log("Mail not send to manager");
+    console.error("Mail not sent to manager and owner:", err);
   }
 };
 

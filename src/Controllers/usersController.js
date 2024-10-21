@@ -113,6 +113,8 @@ export const sendOTPRegister = async (req, res) => {
       contactNumber,
     });
 
+    // console.log("register", emailOtp);
+
     // Send OTP via email and SMS
     await sendOTPVerification({
       email: newOTP.email,
@@ -146,11 +148,8 @@ export const registerUser = async (req, res) => {
       organizationName,
       department,
       roleInRTMS,
-      // contactOtp,
       emailOtp,
     } = req.body;
-
-    // console.log("req.ddd", req.body);
 
     const idCardPhoto = req.files?.idCardPhoto;
     const passportPhoto = req.files?.passportPhoto;
@@ -164,7 +163,6 @@ export const registerUser = async (req, res) => {
       !organizationName ||
       !department ||
       !roleInRTMS ||
-      // !contactOtp ||
       !emailOtp ||
       !idCardPhoto ||
       !passportPhoto
@@ -188,7 +186,6 @@ export const registerUser = async (req, res) => {
 
     // Fetching the most recent OTP
     const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 });
-
     if (!recentOtp) {
       return res.status(400).json({
         success: false,
@@ -197,13 +194,10 @@ export const registerUser = async (req, res) => {
     }
 
     // Validating OTPs
-    if (
-      // contactOtp !== recentOtp.contactOtp ||
-      emailOtp !== recentOtp.emailOtp
-    ) {
+    if (emailOtp !== recentOtp.emailOtp) {
       return res.status(400).json({
         success: false,
-        message: "Provided OTPs do not match the most recent OTPs",
+        message: "Provided OTP does not match the most recent OTP",
       });
     }
     recentOtp.deleteOne();
@@ -227,7 +221,6 @@ export const registerUser = async (req, res) => {
       1000,
       1000
     );
-
     const passportPhotoRes = await uploadCloudinary(
       passportPhoto,
       "rtms",
@@ -244,7 +237,7 @@ export const registerUser = async (req, res) => {
       organizationName,
       department,
       roleInRTMS,
-      isApprovedByManager: roleInRTMS === "manager" ? true : false,
+      isApprovedByManager: roleInRTMS === "manager",
       idCardPhoto: idCardPhotoRes.secure_url,
       passportPhoto: passportPhotoRes.secure_url,
     });
@@ -255,28 +248,60 @@ export const registerUser = async (req, res) => {
       roleInRTMS: "manager",
     });
 
-    if (!manager) {
+    // Find the owner of the organization
+    const owner = await Users.findOne({
+      organizationName,
+      roleInRTMS: "owner",
+    });
+
+    if (!manager || !owner) {
       return res.status(404).json({
         success: false,
-        message: "No manager found for this organization",
+        message: "No manager or owner found for this organization",
       });
     }
 
-    // Send notification to the manager
-    await sendNotificationToManager(
-      newUser.username,
-      newUser.employeeID,
-      newUser.contactNumber,
-      newUser.email,
-      newUser.department,
-      manager.email,
-    );
+    // If the registered user is a manager, notify the owner
+    if (roleInRTMS === "manager") {
+      await sendNotificationToOwner(
+        newUser.username,
+        newUser.employeeID,
+        newUser.contactNumber,
+        newUser.email,
+        newUser.department,
+        owner.email
+      );
+      return res.status(201).json({
+        success: true,
+        message: "Manager registered successfully. Notification sent to Owner.",
+      });
+    }
 
-    res.status(201).json({
-      success: true,
-      message:
-        "User registered successfully. Waiting for approval by Manager and Owner",
+    // If the registered user is an employee, notify both manager and owner
+    if (roleInRTMS === "employee") {
+      console.log("Sending notification to manager and owner for employee:", newUser.username);
+      
+      await sendNotificationToManager(
+        newUser.username,
+        newUser.employeeID,
+        newUser.contactNumber,
+        newUser.email,
+        newUser.department,
+        manager.email,
+        owner.email
+      )
+      return res.status(201).json({
+        success: true,
+        message: "User registered successfully. Waiting for approval by Manager and Owner.",
+      });
+    }
+
+    // Default response if the role is unhandled
+    return res.status(400).json({
+      success: false,
+      message: "Invalid role provided for registration",
     });
+
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -284,6 +309,7 @@ export const registerUser = async (req, res) => {
     });
   }
 };
+
 
 // Approve user by manager
 export const approveUserByManager = async (req, res) => {
@@ -333,12 +359,12 @@ export const approveUserByManager = async (req, res) => {
       user.contactNumber,
       user.email,
       user.department,
-      owner.email,
+      owner.email
     );
 
-     // Set user's approval status
-     user.isApprovedByManager = true;
-     await user.save();
+    // Set user's approval status
+    user.isApprovedByManager = true;
+    await user.save();
 
     res.status(200).json({
       success: true,
@@ -381,7 +407,7 @@ export const approveUserByOwner = async (req, res) => {
     // Fetch the manager for the user's organization
     const manager = await Users.findOne({
       organizationName: user.organizationName,
-      roleInRTMS: 'manager',
+      roleInRTMS: "manager",
     });
 
     if (!manager) {
@@ -394,10 +420,7 @@ export const approveUserByOwner = async (req, res) => {
     // Check if user is also approved by owner
     if (user.isApprovedByOwner) {
       await sendPasswordToUser(user);
-      await sendApprovedNotifactionToManager(
-        user.employeeID,
-        manager.email,
-      );
+      await sendApprovedNotifactionToManager(user.employeeID, manager.email);
     }
 
     // Set user's approval status
@@ -464,7 +487,7 @@ export const rejectUserByManager = async (req, res) => {
       user.contactNumber,
       user.email,
       user.department,
-      owner.email,
+      owner.email
     );
 
     res.status(200).json({
@@ -504,8 +527,8 @@ export const rejectUserByOwner = async (req, res) => {
       organizationName: user.organizationName,
       roleInRTMS: "manager",
     });
-    
-    if(!manager) {
+
+    if (!manager) {
       return res.status(404).json({
         success: false,
         message: "No Manager Found For the Organization",
@@ -523,7 +546,7 @@ export const rejectUserByOwner = async (req, res) => {
       user.contactNumber,
       user.email,
       user.department,
-      manager.email,
+      manager.email
     );
 
     res.status(200).json({
