@@ -279,8 +279,11 @@ export const registerUser = async (req, res) => {
 
     // If the registered user is an employee, notify both manager and owner
     if (roleInRTMS === "employee") {
-      console.log("Sending notification to manager and owner for employee:", newUser.username);
-      
+      console.log(
+        "Sending notification to manager and owner for employee:",
+        newUser.username
+      );
+
       await sendNotificationToManager(
         newUser.username,
         newUser.employeeID,
@@ -289,10 +292,11 @@ export const registerUser = async (req, res) => {
         newUser.department,
         manager.email,
         owner.email
-      )
+      );
       return res.status(201).json({
         success: true,
-        message: "User registered successfully. Waiting for approval by Manager and Owner.",
+        message:
+          "User registered successfully. Waiting for approval by Manager and Owner.",
       });
     }
 
@@ -301,7 +305,6 @@ export const registerUser = async (req, res) => {
       success: false,
       message: "Invalid role provided for registration",
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -564,7 +567,7 @@ export const rejectUserByOwner = async (req, res) => {
 //Users Not Approval Yet (By Manager)
 export const getNotApprovalManagerUser = async (req, res) => {
   try {
-    const { organizationName } = req.params; 
+    const { organizationName } = req.query;
 
     if (!organizationName) {
       return res.status(400).json({
@@ -575,8 +578,8 @@ export const getNotApprovalManagerUser = async (req, res) => {
 
     // Find users where the manager has not approved, based on the organization name
     const approvedManagerUsers = await Users.find({
-      organizationName: organizationName, 
-      isApprovedByManager: false,        
+      organizationName: organizationName,
+      isApprovedByManager: false,
     });
 
     res.status(200).json({
@@ -592,11 +595,10 @@ export const getNotApprovalManagerUser = async (req, res) => {
   }
 };
 
-
 //Users Not Approval Yet (By Manager and Owner)
 export const getNotApprovalOwnerUser = async (req, res) => {
   try {
-    const { organizationName } = req.params; 
+    const { organizationName } = req.query;
 
     if (!organizationName) {
       return res.status(400).json({
@@ -607,11 +609,8 @@ export const getNotApprovalOwnerUser = async (req, res) => {
 
     // Find users where either manager or owner has not approved, based on the organization name
     const approvedOwnerUsers = await Users.find({
-      organizationName: organizationName, 
-      $or: [
-        { isApprovedByManager: false },
-        { isApprovedByOwner: false },  
-      ],
+      organizationName: organizationName,
+      $or: [{ isApprovedByManager: false }, { isApprovedByOwner: false }],
     });
 
     res.status(200).json({
@@ -626,7 +625,6 @@ export const getNotApprovalOwnerUser = async (req, res) => {
     });
   }
 };
-
 
 // Status check the registration
 export const RegistrationStatusUser = async (req, res) => {
