@@ -49,7 +49,7 @@ export const sendOTPVerification = async ({
     const smsResponse = await twilioClient.messages.create(smsOptions);
     console.log("SMS sent successfully:", smsResponse.sid);
   } catch (error) {
-    console.log("OTP not sent. Issue:", error.message || error);
+    console.log(error.message || error, "OTP not sent. Issue:" );
   }
 };
 
