@@ -310,7 +310,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
 // Approve user by manager
 export const approveUserByManager = async (req, res) => {
   try {
@@ -565,11 +564,19 @@ export const rejectUserByOwner = async (req, res) => {
 //Users Not Approval Yet (By Manager)
 export const getNotApprovalManagerUser = async (req, res) => {
   try {
-    // Find User where either manager or owner has not approved
+    const { organizationName } = req.params; 
+
+    if (!organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name is required",
+      });
+    }
+
+    // Find users where the manager has not approved, based on the organization name
     const approvedManagerUsers = await Users.find({
-      $or: [
-        { isApprovedByManager: false }, //Not approved by manager
-      ],
+      organizationName: organizationName, 
+      isApprovedByManager: false,        
     });
 
     res.status(200).json({
@@ -580,19 +587,30 @@ export const getNotApprovalManagerUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error Fetching Unapproval User By Manager",
+      message: error.message || "Error Fetching Unapproved Users By Manager",
     });
   }
 };
 
-//Users Not Approval Yet (By Manager)
+
+//Users Not Approval Yet (By Manager and Owner)
 export const getNotApprovalOwnerUser = async (req, res) => {
   try {
-    // Find User where either manager or owner has not approved
+    const { organizationName } = req.params; 
+
+    if (!organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name is required",
+      });
+    }
+
+    // Find users where either manager or owner has not approved, based on the organization name
     const approvedOwnerUsers = await Users.find({
+      organizationName: organizationName, 
       $or: [
-        { isApprovedByManager: false }, //Not approved by manager
-        { isApprovedByOwner: false }, //Not Approved By Owner
+        { isApprovedByManager: false },
+        { isApprovedByOwner: false },  
       ],
     });
 
@@ -604,10 +622,11 @@ export const getNotApprovalOwnerUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error Fetching Unapproval User By Owner",
+      message: error.message || "Error Fetching Unapproved Users By Owner",
     });
   }
 };
+
 
 // Status check the registration
 export const RegistrationStatusUser = async (req, res) => {

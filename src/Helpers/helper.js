@@ -137,7 +137,7 @@ export const sendNotificationToManager = async (
   }
 };
 
-// Notify the Owner
+// Notify the Owner for approval User
 export const sendNotificationToOwner = async (
   username,
   employeeID,
