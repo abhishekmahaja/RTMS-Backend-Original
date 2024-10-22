@@ -53,33 +53,6 @@ const FlowCheckSchema = new mongoose.Schema({
   },
 });
 
-// Schema for well installations
-const WellInstallationSchema = new mongoose.Schema({
-  wellInstallation: {
-    type: String,
-    required: true,
-  },
-  wellNumber: {
-    type: [String],
-    unique: true,
-  },
-  wellTypes: {
-    type: [String],
-    enum: ["All", "selfFlowing", "puggerWell"],
-    default: "All",
-  },
-});
-
-// Schema for well locations
-const WellLocationSchema = new mongoose.Schema({
-  wellLocation: {
-    type: String,
-    required: true, // First step: only add well location
-  },
-  wellInstallations: [WellInstallationSchema], // Second step: add installations for that location
-});
-
-
 // Main Well schema
 const WellSchema = new mongoose.Schema(
   {
@@ -88,33 +61,34 @@ const WellSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    wellLocations: {
-      type: [WellLocationSchema], // Third step: Locations, installations, and well types based on installations
+    wellLocation: {
+      type: String,
       required: true,
+    },
+    wellInstallation: {
+      type: String,
+      required: true,
+    },
+    wellNumber: {
+      type: String,
+      unique: true,
+    },
+    wellType: {
+      type: String,
+      enum: ["All", "selfFlowing", "puggerWell"],
+      default: "All",
     },
     wellLandmarks: {
       type: String,
     },
     wellLatitude: {
-      type: Number,
-      min: -90,
-      max: 90,
+      type: String,
     },
     wellLongitude: {
-      type: Number,
-      min: -180,
-      max: 180,
+      type: String,
     },
     wellDescription: {
       type: String,
-    },
-    isApprovedByManager: {
-      type: Boolean,
-      default: false,
-    },
-    isApprovedByOwner: {
-      type: Boolean,
-      default: false,
     },
     alertSettings: {
       type: AlertSchema,
@@ -124,6 +98,14 @@ const WellSchema = new mongoose.Schema(
     },
     notFlowing: {
       type: FlowCheckSchema,
+    },
+    isApprovedByManager: {
+      type: Boolean,
+      default: false,
+    },
+    isApprovedByOwner: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

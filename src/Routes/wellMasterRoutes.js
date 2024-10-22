@@ -13,7 +13,8 @@ import {
   addWellTypeAndNumber,
   getWellLocation,
   getInstallationsByLocation,
-  getWellTypesAndNumber,
+  getAllWellTypesAndNumber,
+  getOneWellByWellNumber,
 } from "../Controllers/wellMasterController.js";
 
 const wellRouter = express.Router();
@@ -24,7 +25,8 @@ wellRouter.get("/get-well-location", getWellLocation);
 wellRouter.post("/add-installation-to-location", addInstallationToLocation);
 wellRouter.get("/get-installations-by-location", getInstallationsByLocation);
 wellRouter.post("/add-well-type-and-number", addWellTypeAndNumber);
-wellRouter.get("/get-well-types-and-number", getWellTypesAndNumber);
+wellRouter.get("/get-all-well-types-and-number", getAllWellTypesAndNumber);
+wellRouter.get("/get-one-well-by-well-number", getOneWellByWellNumber);
 wellRouter.post("/add-well", addWell);
 wellRouter.put("/update-well/:id", updateWell);
 wellRouter.delete("/delete-well/:id", deleteWell);
