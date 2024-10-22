@@ -53,29 +53,30 @@ const FlowCheckSchema = new mongoose.Schema({
   },
 });
 
-// correct sepertly
-const WellDetailsSchema = new mongoose.Schema({
-  wellLocation: {
+// Schema for well installations
+const WellInstallationSchema = new mongoose.Schema({
+  wellInstallation: {
     type: String,
     required: true,
   },
-  wellInstallations: [
-    {
-      wellInstallation: {
-        type: String,
-        required: true,
-      },
-      wellNumber: {
-        type: [String],
-        unique: true,
-      },
-      wellTypes: {
-        type: [String], 
-        enum: ["All", "selfFlowing", "puggerWell"],
-        default: "All",
-      },
-    },
-  ],
+  wellNumber: {
+    type: [String],
+    unique: true,
+  },
+  wellTypes: {
+    type: [String],
+    enum: ["All", "selfFlowing", "puggerWell"],
+    default: "All",
+  },
+});
+
+// Schema for well locations
+const WellLocationSchema = new mongoose.Schema({
+  wellLocation: {
+    type: String,
+    required: true, // First step: only add well location
+  },
+  wellInstallations: [WellInstallationSchema], // Second step: add installations for that location
 });
 
 
@@ -88,7 +89,7 @@ const WellSchema = new mongoose.Schema(
       unique: true,
     },
     wellLocations: {
-      type: [WellDetailsSchema],
+      type: [WellLocationSchema], // Third step: Locations, installations, and well types based on installations
       required: true,
     },
     wellLandmarks: {
