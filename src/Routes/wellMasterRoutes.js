@@ -63,6 +63,11 @@ wellRouter.get("/get-not-approval-owner-wells", getNotApprovalOwnerWells);
 wellRouter.get("/get-not-approval-manager-wells", getNotApprovalManagerWells);
 wellRouter.get("/get-all-wells-approved-both", getAllWellsApprovedBoth);
 wellRouter.get("/get-single-well-approved-both", getSingleWellApprovedBoth);
-wellRouter.delete("/delete-well-by-number", deleteWellByNumber);
+wellRouter.delete(
+  "/delete-well-by-number",
+  protectRoute,
+  isOwner,
+  deleteWellByNumber
+);
 
 export default wellRouter;
