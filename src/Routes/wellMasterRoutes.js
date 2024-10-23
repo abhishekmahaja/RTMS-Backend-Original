@@ -1,11 +1,9 @@
 import express from "express";
 import {
-  addWell,
-  updateWell,
-  deleteWell,
-  getAllWells,
-  getOneWell,
-  getNotApprovalWells,
+  addAndUpdateWell,
+  getAllWellsApprovedBoth,
+  getSingleWellApprovedBoth,
+  getNotApprovalOwnerWells,
   wellApprovedByManager,
   wellApprovedByOwner,
   addWellLocation,
@@ -15,7 +13,16 @@ import {
   getInstallationsByLocation,
   getAllWellTypesAndNumber,
   getOneWellByWellNumber,
+  getNotApprovalManagerWells,
+  rejectWellByManager,
+  rejectWellByOwner,
+  deleteWellByNumber,
 } from "../Controllers/wellMasterController.js";
+import {
+  isManager,
+  isOwner,
+  protectRoute,
+} from "../Middleware/protectedRoutes.js";
 
 const wellRouter = express.Router();
 
@@ -27,13 +34,35 @@ wellRouter.get("/get-installations-by-location", getInstallationsByLocation);
 wellRouter.post("/add-well-type-and-number", addWellTypeAndNumber);
 wellRouter.get("/get-all-well-types-and-number", getAllWellTypesAndNumber);
 wellRouter.get("/get-one-well-by-well-number", getOneWellByWellNumber);
-wellRouter.post("/add-well", addWell);
-wellRouter.put("/update-well/:id", updateWell);
-wellRouter.delete("/delete-well/:id", deleteWell);
-wellRouter.get("/all-well", getAllWells);
-wellRouter.get("/single-well/:id", getOneWell);
-wellRouter.post("/well-approved-by-manager/:id", wellApprovedByManager);
-wellRouter.post("/well-Approved-by-owner/:id", wellApprovedByOwner);
-wellRouter.get("/get-not-approval-wells", getNotApprovalWells);
+wellRouter.post("/add-and-update-well", addAndUpdateWell);
+wellRouter.post(
+  "/well-approved-by-manager",
+  protectRoute,
+  isManager,
+  wellApprovedByManager
+);
+wellRouter.post(
+  "/well-Approved-by-owner",
+  protectRoute,
+  isOwner,
+  wellApprovedByOwner
+);
+wellRouter.post(
+  "/reject-well-by-manager",
+  protectRoute,
+  isManager,
+  rejectWellByManager
+);
+wellRouter.post(
+  "/reject-well-by-owner",
+  protectRoute,
+  isOwner,
+  rejectWellByOwner
+);
+wellRouter.get("/get-not-approval-owner-wells", getNotApprovalOwnerWells);
+wellRouter.get("/get-not-approval-manager-wells", getNotApprovalManagerWells);
+wellRouter.get("/get-all-wells-approved-both", getAllWellsApprovedBoth);
+wellRouter.get("/get-single-well-approved-both", getSingleWellApprovedBoth);
+wellRouter.delete("/delete-well-by-number", deleteWellByNumber);
 
 export default wellRouter;

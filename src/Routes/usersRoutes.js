@@ -31,11 +31,16 @@ router.post(
   isManager,
   approveUserByManager
 );
-router.post("/reject-user-by-manager", rejectUserByManager);
-router.post("/reject-user-by-owner", rejectUserByOwner);
+router.post(
+  "/reject-user-by-manager",
+  protectRoute,
+  isManager,
+  rejectUserByManager
+);
+router.post("/approve-by-owner", protectRoute, isOwner, approveUserByOwner);
+router.post("/reject-user-by-owner", protectRoute, isOwner, rejectUserByOwner);
 router.get("/get-not-approved-manager-user", getNotApprovalManagerUser);
 router.get("/get-not-approval-owner-user", getNotApprovalOwnerUser);
-router.post("/approve-by-owner", protectRoute, isOwner, approveUserByOwner);
 router.post("/registration-status", RegistrationStatusUser);
 router.post("/send-otp-login", sendOTPLogin);
 router.post("/login", loginUser);

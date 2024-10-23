@@ -365,9 +365,6 @@ export const approveUserByManager = async (req, res) => {
       });
     }
 
-    // console.log("Organization Name:", user.organizationName);
-    // console.log("Owner Email:", owner.email);
-
     // Send notification to the owner for further approval
     await sendNotificationToOwner(
       user.username,
@@ -406,7 +403,9 @@ export const approveUserByOwner = async (req, res) => {
         message: "User ID is required",
       });
     }
+
     const user = await Users.findOne({ employeeID: employeeID });
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -463,7 +462,6 @@ export const rejectUserByManager = async (req, res) => {
   try {
     const { employeeID } = req.body;
 
-    // Validate if employeeID is provided
     if (!employeeID) {
       return res.status(400).json({
         success: false,
@@ -509,11 +507,8 @@ export const rejectUserByManager = async (req, res) => {
       owner.email
     );
 
-    // console.log("owner ", owner.email, sendRejectNotificationToOwner);
-
     //notify to user
     await sendRejectNotificationToUser(user.username, user.email);
-    // console.log("user ", user.email, sendRejectNotificationToUser);
 
     res.status(200).json({
       success: true,

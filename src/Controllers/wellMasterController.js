@@ -1,8 +1,16 @@
-import { sendWellNotificationToOwner } from "../Helpers/helper.js";
+import {
+  sendWellDeleteNotificationToManager,
+  sendWellDeleteNotificationToOwner,
+  sendWellNotificationToManager,
+  sendWellNotificationToOwner,
+  sendWellRejectNotificationToManager,
+  sendWellRejectNotificationToOwner,
+} from "../Helpers/helper.js";
 import Organization from "../Models/organizationModel.js";
 import Well from "../Models/wellMasterModel.js";
 import Location from "../Models/LocationWellModel.js";
 import Installation from "../Models/InstallationWellModel.js";
+import Users from "../Models/userModel.js";
 
 // Add Location Based on Organization
 export const addWellLocation = async (req, res) => {
@@ -129,8 +137,11 @@ export const addInstallationToLocation = async (req, res) => {
       });
     }
 
-    // Find the Installtion associated with this Location
-    let installationExists = await Installation.findOne({ wellInstallation });
+    // // Find the Installtion associated with this Location
+    let installationExists = await Installation.findOne({
+      wellLocation,
+      wellInstallation,
+    });
 
     if (installationExists) {
       return res.status(400).json({
@@ -237,7 +248,10 @@ export const addWellTypeAndNumber = async (req, res) => {
     }
 
     // Find the installation within the location
-    const installationExists = Installation.find({ wellInstallation });
+    const installationExists = Installation.find({
+      wellLocation,
+      wellInstallation,
+    });
 
     if (!installationExists) {
       return res.status(404).json({
@@ -281,7 +295,7 @@ export const addWellTypeAndNumber = async (req, res) => {
   }
 };
 
-//GET ALL Well Type and Well number based on Organization
+//GET ALL Well Type and number based Organization (Not Approved, Aproved owner or manager)
 export const getAllWellTypesAndNumber = async (req, res) => {
   try {
     const { organizationName } = req.query;
@@ -321,16 +335,26 @@ export const getAllWellTypesAndNumber = async (req, res) => {
   }
 };
 
-//GET One Well Type and Well number based on Well number
+//GET One Well based on Well number (Not Approved, Aproved owner or manager)
 export const getOneWellByWellNumber = async (req, res) => {
   try {
-    const { wellNumber } = req.query;
+    const { organizationName, wellNumber } = req.query;
 
     // Validate required query parameters
-    if (!wellNumber) {
+    if (!organizationName || !wellNumber) {
       return res.status(400).json({
         success: false,
-        message: "Well Number is required.",
+        message: "organization Name and Well Number is required.",
+      });
+    }
+
+    // Find the organization by name
+    const organizationExists = await Well.findOne({ organizationName });
+
+    if (!organizationExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
       });
     }
 
@@ -348,7 +372,7 @@ export const getOneWellByWellNumber = async (req, res) => {
     // Return the well data
     return res.status(200).json({
       success: true,
-      message: `Well with number '${wellNumber}' fetched successfully.`,
+      message: `Well with number '${wellNumber}' in Organization Name '${organizationName}' fetched successfully.`,
       data: well,
     });
   } catch (error) {
@@ -362,7 +386,7 @@ export const getOneWellByWellNumber = async (req, res) => {
 };
 
 // Add a new well // Update a well by ID
-export const addWell = async (req, res) => {
+export const addAndUpdateWell = async (req, res) => {
   try {
     const {
       organizationName,
@@ -430,7 +454,7 @@ export const addWell = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Well added successfully and Now Wait for Approval",
-      well: wellNumberExists,
+      data: wellNumberExists,
     });
 
     //notification send to Owner
@@ -458,43 +482,61 @@ export const addWell = async (req, res) => {
 //Add Well is approved by Manager
 export const wellApprovedByManager = async (req, res) => {
   try {
-    const { id } = req.params;
-    const approvedManager = await Well.findById(id);
+    const { wellNumber } = req.body;
 
-    if (!approvedManager) {
-      return res.status(404).json({
+    if (!wellNumber) {
+      return res.status(400).json({
         success: false,
-        message: "Well not found",
+        message: "Well Number is Required",
       });
     }
-    if (approvedManager.isApprovedByManager) {
-      return res.json({
+
+    console.log("well", wellNumber);
+
+    // Find Well by wellNumber
+    const well = await Well.findOne({ wellNumber });
+
+    if (!well) {
+      return res.status(404).json({
+        success: false,
+        message: "Well Not Found",
+      });
+    }
+
+    // Check if Well is already approved by Manager
+    if (well.isApprovedByManager) {
+      return res.status(400).json({
         success: false,
         message: "This Well is Already Approved By Manager",
       });
     }
 
-    approvedManager.isApprovedByManager = true;
-    await approvedManager.save();
-    res.status(200).json({
-      success: true,
-      message: "Well Approved By Manager Now Wait For Owner Approval",
+    // Find the owner of the Organization
+    const owner = await Users.findOne({
+      organizationName: well.organizationName,
+      roleInRTMS: "owner",
     });
 
-    //notification send to Owner
-    await sendWellNotificationToOwner(
-      process.env.OWNER_MAIL,
-      "Wait for approval ",
-      `<p>Now Wait For Approval and well number ${approvedManager.wellNumber}</p>`
-    );
+    if (!owner) {
+      return res.status(404).json({
+        success: false,
+        message: "No Owner Found for this Organization",
+      });
+    }
 
-    //notification send to Manager
-    await sendWellNotificationToOwner(
-      process.env.MANAGER_MAIL,
-      "Wait for approval ",
-      `<p>Now Wait For Approval and well number ${approvedManager.wellNumber}</p>`
-    );
+    // Send notification to the owner for further approval
+    await sendWellNotificationToOwner(owner.email, well);
+
+    // Mark the Well as approved by manager
+    well.isApprovedByManager = true;
+    await well.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Well '${wellNumber}' Approved by Manager. Waiting For Owner Approval.`,
+    });
   } catch (error) {
+    console.error("Error approving well by manager:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Error Adding Well Approval By Manager",
@@ -505,41 +547,64 @@ export const wellApprovedByManager = async (req, res) => {
 //Add Well is approved by owner
 export const wellApprovedByOwner = async (req, res) => {
   try {
-    const { id } = req.params;
-    const approvedOwner = await Well.findById(id);
+    const { wellNumber } = req.body;
 
-    if (!approvedOwner) {
-      return res.status(404).json({
+    if (!wellNumber) {
+      return res.status(400).json({
         success: false,
-        message: "Well not found",
+        message: "Well Number is Required",
       });
     }
-    if (approvedOwner.isApprovedByOwner) {
-      return res.json({
+
+    // Find Well by wellNumber
+    const well = await Well.findOne({ wellNumber });
+
+    if (!well) {
+      return res.status(404).json({
+        success: false,
+        message: "Well Not Found",
+      });
+    }
+
+    // Check if Well is already approved by Manager
+    if (well.isApprovedByOwner) {
+      return res.status(400).json({
         success: false,
         message: "This Well is Already Approved By Owner",
       });
     }
 
-    approvedOwner.isApprovedByOwner = true;
+    // Find the manager of the Organization
+    const manager = await Users.findOne({
+      organizationName: well.organizationName,
+      roleInRTMS: "manager",
+    });
 
-    if (!approvedOwner.isApprovedByManager) {
-      approvedOwner.isApprovedByManager = true;
-      await approvedOwner.save();
-      res.status(200).json({
-        success: true,
-        message:
-          "This Well Directly Approved By Owner No Need to Manager Approval",
+    console.log("owner api ", well.organizationName);
+
+    if (!manager) {
+      return res.status(404).json({
+        success: false,
+        message: "No Manager Found for this Organization",
       });
     }
 
-    await approvedOwner.save();
+    // Set well approval status
+    well.isApprovedByOwner = true;
+    well.isApprovedByManager = true;
+    await well.save();
+
+    // Check if well is also approved by owner
+    if (well.isApprovedByOwner) {
+      await sendWellNotificationToManager(manager.email, well);
+    }
 
     res.status(200).json({
       success: true,
-      message: "Well Approved By Owner.",
+      message: `Well '${wellNumber}' Approved by Owner.`,
     });
   } catch (error) {
+    console.error("Error approving well by Owner:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Error Adding Well Approval By Owner",
@@ -548,16 +613,27 @@ export const wellApprovedByOwner = async (req, res) => {
 };
 
 // Find wells where either manager or owner has not approved
-export const getNotApprovalWells = async (req, res) => {
+export const getNotApprovalOwnerWells = async (req, res) => {
   try {
-    const approvalWells = await Well.find({
+    const { organizationName } = req.query;
+
+    if (!organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Name is Required",
+      });
+    }
+
+    // Find Wells where either manager or owner has not approved, based on the organization name
+    const approvalOwnerWells = await Well.find({
+      organizationName: organizationName,
       $or: [{ isApprovedByManager: false }, { isApprovedByOwner: false }],
     });
 
     res.status(200).json({
       success: true,
       message: "Unapproved Wells Fetched Successfully",
-      approvalWells,
+      data: approvalOwnerWells,
     });
   } catch (error) {
     res.status(500).json({
@@ -567,57 +643,67 @@ export const getNotApprovalWells = async (req, res) => {
   }
 };
 
-// Delete a well by ID
-export const deleteWell = async (req, res) => {
+//Find Wells not approved by Manager
+export const getNotApprovalManagerWells = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deletedWell = await Well.findByIdAndDelete(id);
+    const { organizationName } = req.query;
 
-    if (!deletedWell) {
-      return res.status(404).json({
+    if (!organizationName) {
+      return res.status(400).json({
         success: false,
-        message: "Well not found",
+        message: "Organization Not Found",
       });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Well deleted successfully And Now Wait For Approval",
+    // Find Wells where the manager has not approved, based on the organization name
+    const approvedManagerWells = await Well.find({
+      organizationName: organizationName,
+      isApprovedByManager: false,
     });
 
-    ///notification send to Owner
-    await sendWellNotificationToOwner(
-      process.env.OWNER_MAIL,
-      "Delete Well Now wait for approval ",
-      `<p>Delete Well And Now Wait For Approval and well number ${deletedWell.wellNumber}</p>`
-    );
-    ///notification send to Manager
-    await sendWellNotificationToOwner(
-      process.env.MANAGER_MAIL,
-      "Delete Well Now wait for approval ",
-      `<p>Delete Well And Now Wait For Approval and well number ${deletedWell.wellNumber}</p>`
-    );
+    res.status(200).json({
+      success: true,
+      message: "Unapproved Wells Fetched Successfully",
+      data: approvedManagerWells,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error deleting well",
+      message: error.message || "Error Fteching Unapproved Wells By Manager",
     });
   }
 };
 
-// Get all wells
-export const getAllWells = async (req, res) => {
+// Get all wells (if all approved by owner and manager) based on Organization Name
+export const getAllWellsApprovedBoth = async (req, res) => {
   try {
+    const { organizationName } = req.query;
+
+    if (!organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name is required",
+      });
+    }
+
+    // Find the well Organization data
+    const allWells = await Well.find({ organizationName });
+
+    if (!allWells) {
+      return res.status(404).json({
+        success: false,
+        message: `No Wells found for organization '${organizationName}'.`,
+      });
+    }
+
     const wells = await Well.find({
-      $and: [
-        { isApprovedByManager: true }, // Not approved by manager
-        { isApprovedByOwner: true }, // Not approved by owner
-      ],
+      $and: [{ isApprovedByManager: true }, { isApprovedByOwner: true }],
     });
+
     res.status(200).json({
       success: true,
-      message: "All data found successfully",
-      wells,
+      message: `All Well found successfully for the Organization '${organizationName}'`,
+      data: wells,
     });
   } catch (error) {
     res.status(500).json({
@@ -627,28 +713,249 @@ export const getAllWells = async (req, res) => {
   }
 };
 
-// Get a single well by ID
-export const getOneWell = async (req, res) => {
+// Get Single wells based on Well Number (if all approved by owner and manager)
+export const getSingleWellApprovedBoth = async (req, res) => {
   try {
-    const { id } = req.params;
-    const well = await Well.findById(id);
+    const { organizationName, wellNumber } = req.query;
+
+    // Check if required parameters are provided
+    if (!organizationName || !wellNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name and well number are required",
+      });
+    }
+
+    // Find the well by organizationName and wellNumber
+    const well = await Well.findOne({ organizationName, wellNumber });
 
     if (!well) {
       return res.status(404).json({
         success: false,
-        message: "Well not found",
+        message: `Well with number '${wellNumber}' not found in organization '${organizationName}'.`,
       });
     }
 
+    // Check if both manager and owner have approved the well
+    if (!well.isApprovedByManager || !well.isApprovedByOwner) {
+      return res.status(200).json({
+        success: false,
+        message: `Well '${wellNumber}' is not approved by ${
+          !well.isApprovedByManager ? "manager" : ""
+        }${
+          !well.isApprovedByManager && !well.isApprovedByOwner ? " and " : ""
+        }${!well.isApprovedByOwner ? "owner" : ""}.`,
+      });
+    }
+
+    // If approved by both manager and owner, return the well details
+    return res.status(200).json({
+      success: true,
+      message: `Well '${wellNumber}' found and approved by both manager and owner in organization '${organizationName}'.`,
+      data: well,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching well details",
+    });
+  }
+};
+
+// Reject Well by manager
+export const rejectWellByManager = async (req, res) => {
+  try {
+    const { organizationName, wellNumber } = req.body;
+
+    if (!organizationName || !wellNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Name and Well Number are Required",
+      });
+    }
+
+    // Find the well by organizationName and wellNumber
+    const well = await Well.findOne({ organizationName, wellNumber });
+
+    if (!well) {
+      return res.status(404).json({
+        success: false,
+        message: `Well with number '${wellNumber}' not found in organization '${organizationName}'.`,
+      });
+    }
+
+    // Find the owner of the organization
+    const owner = await Users.findOne({
+      organizationName: well.organizationName,
+      roleInRTMS: "owner",
+    });
+
+    // Check if an owner is found
+    if (!owner) {
+      return res.status(404).json({
+        success: false,
+        message: "No Owner found for this Organization",
+      });
+    }
+
+    //Delete the Well Record from the database
+    await Well.deleteOne({ wellNumber });
+
+    //Send Notification to Owner
+    await sendWellRejectNotificationToOwner(well, owner.email);
+
     res.status(200).json({
       success: true,
-      message: "Data found successfully",
-      well,
+      message: "Well Reject by Manager and Notification Send to owner",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to reject Well by manager",
+    });
+  }
+};
+
+// Reject Well by Owner
+export const rejectWellByOwner = async (req, res) => {
+  try {
+    const { organizationName, wellNumber } = req.body;
+
+    if (!organizationName || !wellNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Name and Well Number are Required",
+      });
+    }
+
+    // Find the well by organizationName and wellNumber
+    const well = await Well.findOne({ organizationName, wellNumber });
+
+    if (!well) {
+      return res.status(404).json({
+        success: false,
+        message: `Well with number '${wellNumber}' not found in organization '${organizationName}'.`,
+      });
+    }
+
+    // Find the manager of the organization
+    const manager = await Users.findOne({
+      organizationName: well.organizationName,
+      roleInRTMS: "manager",
+    });
+
+    // Check if an manager is found
+    if (!manager) {
+      return res.status(404).json({
+        success: false,
+        message: "No manager found for this Organization",
+      });
+    }
+
+    if (!manager.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Manager does not have a valid email",
+      });
+    }
+
+    //Delete the Well Record from the database
+    await Well.deleteOne({ wellNumber });
+
+    //Send Notification to Owner
+    await sendWellRejectNotificationToManager(well, manager.email);
+
+    res.status(200).json({
+      success: true,
+      message: "Well Reject by Owner and Notification Send to Manager",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to reject Well by Owner",
+    });
+  }
+};
+
+// Delete well by well Number based on Organization
+export const deleteWellByNumber = async (req, res) => {
+  try {
+    const { organizationName, wellNumber } = req.query;
+
+    if (!organizationName || !wellNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Name and Well Number are Required",
+      });
+    }
+
+    // Find the well by organizationName and wellNumber
+    const well = await Well.findOne({ organizationName, wellNumber });
+
+    if (!well) {
+      return res.status(404).json({
+        success: false,
+        message: `Well with number '${wellNumber}' not found in organization '${organizationName}'.`,
+      });
+    }
+
+    // Delete the well by organizationName and wellNumber
+    const deletedWell = await Well.findOneAndDelete({
+      organizationName,
+      wellNumber,
+    });
+
+    if (!deletedWell) {
+      return res.status(404).json({
+        success: false,
+        message: "Well not found for deletion",
+      });
+    }
+
+    // Find the manager of the organization
+    const manager = await Users.findOne({
+      organizationName: well.organizationName,
+      roleInRTMS: "manager",
+    });
+
+    // Find the owner of the organization
+    const owner = await Users.findOne({
+      organizationName: well.organizationName,
+      roleInRTMS: "owner",
+    });
+
+    // Check if an owner and manager are found
+    if (!owner || !manager) {
+      return res.status(404).json({
+        success: false,
+        message: "No Owner and Manager found for this Organization",
+      });
+    }
+
+    // Check if the owner and manager have valid emails
+    if (!owner.email || !manager.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Owner or Manager does not have a valid email",
+      });
+    }
+
+    // Send notifications to the Owner and Manager
+    await sendWellDeleteNotificationToOwner(well, owner.email);
+    await sendWellDeleteNotificationToManager(well, manager.email);
+
+    // Respond with success
+    res.status(200).json({
+      success: true,
+      message:
+        "Well deleted successfully and notifications sent to Owner and Manager",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error fetching well",
+      message: error.message || "Error deleting well",
     });
   }
 };

@@ -49,7 +49,7 @@ export const sendOTPVerification = async ({
     const smsResponse = await twilioClient.messages.create(smsOptions);
     console.log("SMS sent successfully:", smsResponse.sid);
   } catch (error) {
-    console.log(error.message || error, "OTP not sent. Issue:" );
+    console.log(error.message || error, "OTP not sent. Issue:");
   }
 };
 
@@ -343,18 +343,201 @@ const generatePassword = () => {
   return Math.random().toString(36).slice(-8);
 };
 
-// Add Well Function to send the email with dynamic content
-export const sendWellNotificationToOwner = async (
-  ownerToEmail,
-  subject,
-  htmlContent
+// Add Well Function to send the email to owner
+export const sendWellNotificationToOwner = async (ownerEmail, well) => {
+  try {
+    const subject = `Approval Needed for Well ${well.wellNumber}`;
+    const htmlContent = `
+      <p>Dear Owner,</p>
+      <p>The well with the following details requires your approval and its Approved From Manager Side:</p>
+      <ul>
+        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${well.wellType}</li>
+        <li><strong>Location:</strong> ${well.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
+        <li><strong>Description:</strong> ${well.wellDescription}</li>
+      </ul>
+      <p>Please review and provide your approval.</p>
+    `;
+
+    // Send email
+    const ownerWellSendOption = {
+      from: process.env.AUTH_EMAIL, 
+      to: ownerEmail,
+      subject: subject, 
+      html: htmlContent, 
+    };
+
+    await transporter.sendMail(ownerWellSendOption);
+    // console.log("Mail sent successfully to Owner");
+  } catch (error) {
+    console.log("Mail not sent to Owner", error);
+  }
+};
+
+// Add Well Function to send the email to manager
+export const sendWellNotificationToManager = async (managerEmail, well) => {
+  try {
+    const subject = `Approval Needed for Well ${well.wellNumber}`;
+    const htmlContent = `
+      <p>Dear Manager,</p>
+      <p>The well with the following details is Approved Now to use:</p>
+      <ul>
+        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${well.wellType}</li>
+        <li><strong>Location:</strong> ${well.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
+        <li><strong>Description:</strong> ${well.wellDescription}</li>
+      </ul>
+      <p>Please Use This Well.</p>
+    `;
+
+    // Send email
+    const managerWellSendOption = {
+      from: process.env.AUTH_EMAIL, 
+      to: managerEmail,
+      subject: subject, 
+      html: htmlContent, 
+    };
+
+    await transporter.sendMail(managerWellSendOption);
+    // console.log("Mail sent successfully to Owner");
+  } catch (error) {
+    console.log("Mail not sent to Owner", error);
+  }
+};
+
+// Notify the owner about the rejected Well
+export const sendWellRejectNotificationToOwner = async (
+  well,
+  ownerEmail
 ) => {
   try {
+    const subject = `Approval Reject by Manager Well ${well.wellNumber}`;
+    const htmlContent = `
+      <p>Dear Owner,</p>
+      <p>The well with the following details Reject From Manager Side:</p>
+      <ul>
+        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${well.wellType}</li>
+        <li><strong>Location:</strong> ${well.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
+        <li><strong>Description:</strong> ${well.wellDescription}</li>
+      </ul>
+      <p>Thanks For Understanding.</p>
+    `;
+
+    // Send email
     const ownerWellSendOption = {
-      from: process.env.AUTH_EMAIL,
-      to: ownerToEmail,
-      subject: subject, // Dynamic subject
-      html: htmlContent, // Dynamic HTML content
+      from: process.env.AUTH_EMAIL, 
+      to: ownerEmail,
+      subject: subject, 
+      html: htmlContent, 
+    };
+
+    await transporter.sendMail(ownerWellSendOption);
+    // console.log("Mail sent successfully to Owner");
+  } catch (error) {
+    console.log("Mail not sent to Owner", error);
+  }
+};
+
+// Notify the Manager about the rejected Well
+export const sendWellRejectNotificationToManager = async (
+  well,
+  managerEmail
+) => {
+  try {
+    const subject = `Approval Reject by Owner Well ${well.wellNumber}`;
+    const htmlContent = `
+      <p>Dear Manager,</p>
+      <p>The well with the following details Reject From Owner Side:</p>
+      <ul>
+        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${well.wellType}</li>
+        <li><strong>Location:</strong> ${well.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
+        <li><strong>Description:</strong> ${well.wellDescription}</li>
+      </ul>
+      <p>Thanks For Understanding.</p>
+    `;
+
+    // Send email
+    const managerWellSendOption = {
+      from: process.env.AUTH_EMAIL, 
+      to: managerEmail,
+      subject: subject, 
+      html: htmlContent, 
+    };
+
+    await transporter.sendMail(managerWellSendOption);
+    // console.log("Mail sent successfully to manager");
+  } catch (error) {
+    console.log("Mail not sent to Owner", error);
+  }
+};
+
+// Notify the Manager about the Delete Well
+export const sendWellDeleteNotificationToManager = async (
+  well,
+  managerEmail
+) => {
+  try {
+    const subject = `Well Delete by Manager ${well.wellNumber}`;
+    const htmlContent = `
+      <p>Dear Manager,</p>
+      <p>The well with the following details delete From Owner Side:</p>
+      <ul>
+        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${well.wellType}</li>
+        <li><strong>Location:</strong> ${well.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
+        <li><strong>Description:</strong> ${well.wellDescription}</li>
+      </ul>
+      <p>Thanks For Understanding.</p>
+    `;
+
+    // Send email
+    const managerWellSendOption = {
+      from: process.env.AUTH_EMAIL, 
+      to: managerEmail,
+      subject: subject, 
+      html: htmlContent, 
+    };
+
+    await transporter.sendMail(managerWellSendOption);
+    // console.log("Mail sent successfully to manager");
+  } catch (error) {
+    console.log("Mail not sent to Owner", error);
+  }
+};
+
+// Notify the Owner about the Delete Well
+export const sendWellDeleteNotificationToOwner = async (
+  well,
+  ownerEmail
+) => {
+  try {
+    const subject = `Well Delete by Owner ${well.wellNumber}`;
+    const htmlContent = `
+      <p>Dear Manager,</p>
+      <p>The well with the following details Delete From Manager Side:</p>
+      <ul>
+        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${well.wellType}</li>
+        <li><strong>Location:</strong> ${well.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
+        <li><strong>Description:</strong> ${well.wellDescription}</li>
+      </ul>
+      <p>Thanks For Understanding.</p>
+    `;
+
+    // Send email
+    const ownerWellSendOption = {
+      from: process.env.AUTH_EMAIL, 
+      to: ownerEmail,
+      subject: subject, 
+      html: htmlContent, 
     };
 
     await transporter.sendMail(ownerWellSendOption);

@@ -59,7 +59,6 @@ const WellSchema = new mongoose.Schema(
     organizationName: {
       type: String,
       required: true,
-      unique: true,
     },
     wellLocation: {
       type: String,
