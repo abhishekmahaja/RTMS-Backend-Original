@@ -33,7 +33,7 @@ const FlowCheckSchema = new mongoose.Schema({
   firstPressure: {
     type: String,
     required: true,
-    enum: ["GIP", "CHP", "THP", "solarVoltage"],
+    enum: ["GIP", "CHP", "THP", "batteryPercentage", "solarVoltage"],
     default: "GIP",
   },
   comparison: {
@@ -45,7 +45,7 @@ const FlowCheckSchema = new mongoose.Schema({
   secondPressure: {
     type: String,
     required: true,
-    enum: ["GIP", "CHP", "THP", "solarVoltage"],
+    enum: ["GIP", "CHP", "THP", "batteryPercentage", "solarVoltage"],
     default: "GIP",
   },
   tolerance: {
@@ -86,7 +86,7 @@ const WellSchema = new mongoose.Schema(
     wellLongitude: {
       type: String,
     },
-    wellDescription: {
+    nodeID: {
       type: String,
     },
     alertSettings: {

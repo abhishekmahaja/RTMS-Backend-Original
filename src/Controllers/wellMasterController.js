@@ -394,7 +394,7 @@ export const addAndUpdateWell = async (req, res) => {
       wellLandmarks,
       wellLatitude,
       wellLongitude,
-      wellDescription,
+      nodeID,
       alertSettings,
       flowing,
       notFlowing,
@@ -406,7 +406,7 @@ export const addAndUpdateWell = async (req, res) => {
       !wellLandmarks ||
       !wellLatitude ||
       !wellLongitude ||
-      !wellDescription ||
+      !nodeID ||
       !alertSettings ||
       !flowing ||
       !notFlowing
@@ -439,9 +439,9 @@ export const addAndUpdateWell = async (req, res) => {
 
     //check all the value whose enter
     wellNumberExists.wellLatitude = wellLandmarks;
-    wellNumberExists.wellDescription = wellLatitude;
+    wellNumberExists.wellLatitude = wellLatitude;
     wellNumberExists.wellLongitude = wellLongitude;
-    wellNumberExists.wellDescription = wellDescription;
+    wellNumberExists.nodeID = nodeID;
     // Update alertSettings
     wellNumberExists.alertSettings = alertSettings;
     // Update flowing and notFlowing
