@@ -10,7 +10,7 @@ export const externalDataCollect = async (req, res) => {
     await newData.save();
     res.status(201).json({
       status: true,
-      message: "Data saved successfully",
+      message: "Data Saved successfully",
       data: newData,
     });
   } catch (error) {

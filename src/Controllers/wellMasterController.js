@@ -104,6 +104,125 @@ export const getWellLocation = async (req, res) => {
   }
 };
 
+// Update Location Based on Organization
+export const updateWellLocation = async (req, res) => {
+  try {
+    const { organizationName, oldWellLocation, newWellLocation } = req.body;
+
+    if (!organizationName || !oldWellLocation || !newWellLocation) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Organization Name, Old Well Location, and New Well Location are required",
+      });
+    }
+
+    // Update all matching entries in the Location model
+    const locationUpdateResult = await Location.updateMany(
+      { organizationName, wellLocation: oldWellLocation },
+      { wellLocation: newWellLocation }
+    );
+
+    // Update all matching entries in the Installation model
+    const installationUpdateResult = await Installation.updateMany(
+      { organizationName, wellLocation: oldWellLocation },
+      { wellLocation: newWellLocation }
+    );
+
+    // Update all matching entries in the Well model
+    const wellUpdateResult = await Well.updateMany(
+      { organizationName, wellLocation: oldWellLocation },
+      { wellLocation: newWellLocation }
+    );
+
+    // Check if any updates were made in at least one collection
+    if (
+      locationUpdateResult.matchedCount === 0 &&
+      installationUpdateResult.matchedCount === 0 &&
+      wellUpdateResult.matchedCount === 0
+    ) {
+      return res.status(404).json({
+        success: false,
+        message: `No entries found for Organization '${organizationName}' with Location '${oldWellLocation}'.`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Location updated successfully from '${oldWellLocation}' to '${newWellLocation}' in all relevant collections.`,
+      Location: locationUpdateResult,
+      Installation: installationUpdateResult,
+      Well: wellUpdateResult,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the Well Location",
+      error: error.message,
+    });
+  }
+};
+
+// Delete Location Based on Organization and Well Location
+export const deleteWellLocation = async (req, res) => {
+  try {
+    const { organizationName, wellLocation } = req.body;
+
+    if (!organizationName || !wellLocation) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Name and Well Location are required",
+      });
+    }
+
+    // Delete all matching entries in the Location model
+    const locationDeleteResult = await Location.deleteMany({
+      organizationName,
+      wellLocation,
+    });
+
+    // Delete all matching entries in the Installation model
+    const installationDeleteResult = await Installation.deleteMany({
+      organizationName,
+      wellLocation,
+    });
+
+    // Delete all matching entries in the Well model
+    const wellDeleteResult = await Well.deleteMany({
+      organizationName,
+      wellLocation,
+    });
+
+    // Check if any deletions were made in at least one collection
+    if (
+      locationDeleteResult.deletedCount === 0 &&
+      installationDeleteResult.deletedCount === 0 &&
+      wellDeleteResult.deletedCount === 0
+    ) {
+      return res.status(404).json({
+        success: false,
+        message: `No entries found for Organization '${organizationName}' with Location '${wellLocation}'.`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Location '${wellLocation}' deleted successfully for Organization '${organizationName}' in all relevant collections.`,
+      Location: locationDeleteResult,
+      Installation: installationDeleteResult,
+      Well: wellDeleteResult,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while deleting the Well Location",
+      error: error.message,
+    });
+  }
+};
+
 //Add Installation to the Existing Location
 export const addInstallationToLocation = async (req, res) => {
   try {

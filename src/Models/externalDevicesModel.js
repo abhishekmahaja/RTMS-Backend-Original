@@ -7,9 +7,20 @@ const externalDeviceSchema = new mongoose.Schema({
   // data: {
   //   type: String,
   // },
+  // organizationName: {
+  //   type: String,
+  //   // required: true,
+  // },
+  // wellNumber: {
+  //   type: String,
+  //   unique: true,
+  // },
+  // nodeID: {
+  //   type: String,
+  // },
   data: {
-    type: Map, // Using Map allows storing key-value pairs
-    of: Number, // Values in the map are expected to be Numbers
+    type: Map, 
+    of: Number, 
   },
   createAt: {
     type: Date,

@@ -17,6 +17,8 @@ import {
   rejectWellByManager,
   rejectWellByOwner,
   deleteWellByNumber,
+  updateWellLocation,
+  deleteWellLocation,
 } from "../Controllers/wellMasterController.js";
 import {
   isManager,
@@ -29,6 +31,8 @@ const wellRouter = express.Router();
 // routes to call API
 wellRouter.post("/add-well-location", addWellLocation);
 wellRouter.get("/get-well-location", getWellLocation);
+wellRouter.put("/update-well-location", updateWellLocation);
+wellRouter.delete("/delete-well-location", deleteWellLocation);
 wellRouter.post("/add-installation-to-location", addInstallationToLocation);
 wellRouter.get("/get-installations-by-location", getInstallationsByLocation);
 wellRouter.post("/add-well-type-and-number", addWellTypeAndNumber);
