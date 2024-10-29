@@ -556,8 +556,20 @@ export const addAndUpdateWell = async (req, res) => {
       });
     }
 
+  const isNodIdExists = await Well.findOne({nodeID})
+
+  if (isNodIdExists) {
+    return res.status(400).json({
+      success: false,
+      message: "Node ID is already present!"
+    })
+  }
+
+  
+
     //check all the value whose enter
-    wellNumberExists.wellLatitude = wellLandmarks;
+    wellNumberExists.wellLandmarks = wellLandmarks;
+    wellNumberExists.nodeID= nodeID;
     wellNumberExists.wellLatitude = wellLatitude;
     wellNumberExists.wellLongitude = wellLongitude;
     wellNumberExists.nodeID = nodeID;

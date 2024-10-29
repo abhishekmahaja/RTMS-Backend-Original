@@ -28,7 +28,7 @@ const externalDeviceSchema = new mongoose.Schema({
   },
 });
 
-const externalDevice = mongoose.model("externalDevice", externalDeviceSchema);
+const ExternalDevice = mongoose.model("ExternalDevice", externalDeviceSchema);
 
-export default externalDevice;
+export default ExternalDevice;
 
