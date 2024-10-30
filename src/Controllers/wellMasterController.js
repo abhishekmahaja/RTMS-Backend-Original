@@ -357,7 +357,7 @@ export const addWellTypeAndNumber = async (req, res) => {
     }
 
     // Find the location within the well's locations
-    const locationExists = Location.find({ wellLocation });
+    const locationExists = Location.findOne({ wellLocation });
 
     if (!locationExists) {
       return res.status(404).json({
@@ -367,7 +367,7 @@ export const addWellTypeAndNumber = async (req, res) => {
     }
 
     // Find the installation within the location
-    const installationExists = Installation.find({
+    const installationExists = Installation.findOne({
       wellLocation,
       wellInstallation,
     });
