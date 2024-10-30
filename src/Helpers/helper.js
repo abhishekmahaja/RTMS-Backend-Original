@@ -344,7 +344,7 @@ const generatePassword = () => {
 };
 
 // Add Well Function to send the email to owner
-export const sendWellNotificationToOwner = async (ownerEmail, wellNumberExists) => {
+export const sendWellNotificationToOwner = async (wellNumberExists, ownerEmail) => {
   try {
     const subject = `Approval Needed for Well ${wellNumberExists.wellNumber}`;
     const htmlContent = `

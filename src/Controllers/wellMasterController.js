@@ -602,6 +602,9 @@ export const addAndUpdateWell = async (req, res) => {
     //notification send to Manager
     await sendWellNotificationToManager(wellNumberExists, manager.email);
 
+    console.log("owner", owner.email);
+    console.log("manager", manager.email);
+
     // Save updated well details
     await wellNumberExists.save();
 
