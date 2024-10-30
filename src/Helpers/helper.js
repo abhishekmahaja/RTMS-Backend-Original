@@ -344,18 +344,18 @@ const generatePassword = () => {
 };
 
 // Add Well Function to send the email to owner
-export const sendWellNotificationToOwner = async (ownerEmail, well) => {
+export const sendWellNotificationToOwner = async (ownerEmail, wellNumberExists) => {
   try {
-    const subject = `Approval Needed for Well ${well.wellNumber}`;
+    const subject = `Approval Needed for Well ${wellNumberExists.wellNumber}`;
     const htmlContent = `
       <p>Dear Owner,</p>
       <p>The well with the following details requires your approval and its Approved From Manager Side:</p>
       <ul>
-        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
-        <li><strong>Well Type:</strong> ${well.wellType}</li>
-        <li><strong>Location:</strong> ${well.wellLocation}</li>
-        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
-        <li><strong>Description:</strong> ${well.wellDescription}</li>
+        <li><strong>Well Number:</strong> ${wellNumberExists.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${wellNumberExists.wellType}</li>
+        <li><strong>Location:</strong> ${wellNumberExists.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${wellNumberExists.wellInstallation}</li>
+        <li><strong>Description:</strong> ${wellNumberExists.wellDescription}</li>
       </ul>
       <p>Please review and provide your approval.</p>
     `;
@@ -376,18 +376,18 @@ export const sendWellNotificationToOwner = async (ownerEmail, well) => {
 };
 
 // Add Well Function to send the email to manager
-export const sendWellNotificationToManager = async (managerEmail, well) => {
+export const sendWellNotificationToManager = async (managerEmail, wellNumberExists) => {
   try {
-    const subject = `Approval Needed for Well ${well.wellNumber}`;
+    const subject = `Approval Needed for Well ${wellNumberExists.wellNumber}`;
     const htmlContent = `
       <p>Dear Manager,</p>
       <p>The well with the following details is Approved Now to use:</p>
       <ul>
-        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
-        <li><strong>Well Type:</strong> ${well.wellType}</li>
-        <li><strong>Location:</strong> ${well.wellLocation}</li>
-        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
-        <li><strong>Description:</strong> ${well.wellDescription}</li>
+        <li><strong>Well Number:</strong> ${wellNumberExists.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${wellNumberExists.wellType}</li>
+        <li><strong>Location:</strong> ${wellNumberExists.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${wellNumberExists.wellInstallation}</li>
+        <li><strong>Description:</strong> ${wellNumberExists.wellDescription}</li>
       </ul>
       <p>Please Use This Well.</p>
     `;
@@ -409,20 +409,20 @@ export const sendWellNotificationToManager = async (managerEmail, well) => {
 
 // Notify the owner about the rejected Well
 export const sendWellRejectNotificationToOwner = async (
-  well,
+  wellNumberExists,
   ownerEmail
 ) => {
   try {
-    const subject = `Approval Reject by Manager Well ${well.wellNumber}`;
+    const subject = `Approval Reject by Manager Well ${wellNumberExists.wellNumber}`;
     const htmlContent = `
       <p>Dear Owner,</p>
       <p>The well with the following details Reject From Manager Side:</p>
       <ul>
-        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
-        <li><strong>Well Type:</strong> ${well.wellType}</li>
-        <li><strong>Location:</strong> ${well.wellLocation}</li>
-        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
-        <li><strong>Description:</strong> ${well.wellDescription}</li>
+        <li><strong>Well Number:</strong> ${wellNumberExists.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${wellNumberExists.wellType}</li>
+        <li><strong>Location:</strong> ${wellNumberExists.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${wellNumberExists.wellInstallation}</li>
+        <li><strong>Description:</strong> ${wellNumberExists.wellDescription}</li>
       </ul>
       <p>Thanks For Understanding.</p>
     `;
@@ -444,20 +444,20 @@ export const sendWellRejectNotificationToOwner = async (
 
 // Notify the Manager about the rejected Well
 export const sendWellRejectNotificationToManager = async (
-  well,
+  wellNumberExists,
   managerEmail
 ) => {
   try {
-    const subject = `Approval Reject by Owner Well ${well.wellNumber}`;
+    const subject = `Approval Reject by Owner Well ${wellNumberExists.wellNumber}`;
     const htmlContent = `
       <p>Dear Manager,</p>
       <p>The well with the following details Reject From Owner Side:</p>
       <ul>
-        <li><strong>Well Number:</strong> ${well.wellNumber}</li>
-        <li><strong>Well Type:</strong> ${well.wellType}</li>
-        <li><strong>Location:</strong> ${well.wellLocation}</li>
-        <li><strong>Installation Date:</strong> ${well.wellInstallation}</li>
-        <li><strong>Description:</strong> ${well.wellDescription}</li>
+        <li><strong>Well Number:</strong> ${wellNumberExists.wellNumber}</li>
+        <li><strong>Well Type:</strong> ${wellNumberExists.wellType}</li>
+        <li><strong>Location:</strong> ${wellNumberExists.wellLocation}</li>
+        <li><strong>Installation Date:</strong> ${wellNumberExists.wellInstallation}</li>
+        <li><strong>Description:</strong> ${wellNumberExists.wellDescription}</li>
       </ul>
       <p>Thanks For Understanding.</p>
     `;

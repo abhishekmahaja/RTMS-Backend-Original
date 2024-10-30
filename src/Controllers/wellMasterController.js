@@ -556,20 +556,18 @@ export const addAndUpdateWell = async (req, res) => {
       });
     }
 
-  const isNodIdExists = await Well.findOne({nodeID})
+    const isNodIdExists = await Well.findOne({ nodeID });
 
-  if (isNodIdExists) {
-    return res.status(400).json({
-      success: false,
-      message: "Node ID is already present!"
-    })
-  }
-
-  
+    if (isNodIdExists) {
+      return res.status(400).json({
+        success: false,
+        message: `Node ID '${nodeID}' is already present!`,
+      });
+    }
 
     //check all the value whose enter
     wellNumberExists.wellLandmarks = wellLandmarks;
-    wellNumberExists.nodeID= nodeID;
+    wellNumberExists.nodeID = nodeID;
     wellNumberExists.wellLatitude = wellLatitude;
     wellNumberExists.wellLongitude = wellLongitude;
     wellNumberExists.nodeID = nodeID;
@@ -579,6 +577,31 @@ export const addAndUpdateWell = async (req, res) => {
     wellNumberExists.flowing = flowing;
     wellNumberExists.notFlowing = notFlowing;
 
+    // Find the owner of the organization
+    const owner = await Users.findOne({
+      organizationName,
+      roleInRTMS: "owner",
+    });
+
+    // Find the manager of the organization
+    const manager = await Users.findOne({
+      organizationName,
+      roleInRTMS: "manager",
+    });
+
+    if (!manager || !owner) {
+      return res.status(404).json({
+        success: false,
+        message: "No manager or owner found for this organization",
+      });
+    }
+
+    //notification send to Owner
+    await sendWellNotificationToOwner(wellNumberExists, owner.email);
+
+    //notification send to Manager
+    await sendWellNotificationToManager(wellNumberExists, manager.email);
+
     // Save updated well details
     await wellNumberExists.save();
 
@@ -587,20 +610,6 @@ export const addAndUpdateWell = async (req, res) => {
       message: "Well added successfully and Now Wait for Approval",
       data: wellNumberExists,
     });
-
-    //notification send to Owner
-    await sendWellNotificationToOwner(
-      process.env.OWNER_MAIL,
-      "Add Well Now wait for approval ",
-      `<p>Add Well And Now Wait For Approval and well number ${wellNumberExists}</p>`
-    );
-
-    //notification send to Manager
-    await sendWellNotificationToOwner(
-      process.env.MANAGER_MAIL,
-      "Add Well Now wait for approval",
-      `<p>Add Well And Now Wait For Approval and well number ${wellNumberExists}</p>`
-    );
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -930,10 +939,17 @@ export const rejectWellByManager = async (req, res) => {
     }
 
     //Delete the Well Record from the database
-    await Well.deleteOne({ wellNumber });
+    const wellNumberExists = await Well.deleteOne({ wellNumber });
+
+    if (!wellNumberExists) {
+      return res.status(400).json({
+        success: false,
+        message: `Well Number '${wellNumber}' not found`,
+      });
+    }
 
     //Send Notification to Owner
-    await sendWellRejectNotificationToOwner(well, owner.email);
+    await sendWellRejectNotificationToOwner(wellNumberExists, owner.email);
 
     res.status(200).json({
       success: true,
@@ -992,10 +1008,17 @@ export const rejectWellByOwner = async (req, res) => {
     }
 
     //Delete the Well Record from the database
-    await Well.deleteOne({ wellNumber });
+    const wellNumberExists = await Well.deleteOne({ wellNumber });
+
+    if (!wellNumberExists) {
+      return res.status(400).json({
+        success: false,
+        message: `Well Number '${wellNumber}' not found`,
+      });
+    }
 
     //Send Notification to Owner
-    await sendWellRejectNotificationToManager(well, manager.email);
+    await sendWellRejectNotificationToManager(wellNumberExists, manager.email);
 
     res.status(200).json({
       success: true,
