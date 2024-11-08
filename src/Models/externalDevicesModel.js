@@ -18,9 +18,9 @@ const externalDeviceSchema = new mongoose.Schema({
   // nodeID: {
   //   type: String,
   // },
-  data: {
+  data: { 
     type: Map, 
-    of: Number, 
+    of: String, 
   },
   createAt: {
     type: Date,
