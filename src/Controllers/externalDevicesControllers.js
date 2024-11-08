@@ -27,7 +27,7 @@ export const externalDataCollect = async (req, res) => {
 export const externalDataShow = async (req, res) => {
   try {
     const allData = await ExternalDevice.find();
-    
+
     res.status(200).json({
       success: true,
       message: "Data Show Successfully",
@@ -85,8 +85,8 @@ export const externalDataWellAndNodeIDShow = async (req, res) => {
 
     //latest data in ExternalDevice sorted by time (assuming you have a `timestamp` field)
     const latestData = await ExternalDevice.find({ wellNumber, data })
-      .sort({ timestamp: -1 })  // Sort by timestamp in descending order
-      .limit(1);  // Get the latest entry
+      .sort({ timestamp: -1 }) // Sort by timestamp in descending order
+      .limit(1); // Get the latest entry
 
     res.status(200).json({
       success: true,
@@ -100,4 +100,3 @@ export const externalDataWellAndNodeIDShow = async (req, res) => {
     });
   }
 };
-
