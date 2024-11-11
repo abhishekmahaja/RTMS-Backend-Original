@@ -357,7 +357,7 @@ export const addWellTypeAndNumber = async (req, res) => {
     }
 
     // Find the location within the well's locations
-    const locationExists = Location.findOne({ wellLocation });
+    const locationExists = await Location.findOne({ wellLocation });
 
     if (!locationExists) {
       return res.status(404).json({
@@ -367,7 +367,7 @@ export const addWellTypeAndNumber = async (req, res) => {
     }
 
     // Find the installation within the location
-    const installationExists = Installation.findOne({
+    const installationExists = await Installation.findOne({
       wellLocation,
       wellInstallation,
     });
@@ -380,7 +380,7 @@ export const addWellTypeAndNumber = async (req, res) => {
     }
 
     // Check if the well number already exists for this installation
-    const wellNumberExists = await Well.findOne({ wellNumber });
+    const wellNumberExists = await Well.findOne({ wellNumber, wellLocation });
 
     if (wellNumberExists) {
       return res.status(400).json({
@@ -389,7 +389,7 @@ export const addWellTypeAndNumber = async (req, res) => {
       });
     }
 
-    // Create the wellNumber and wellType to the installation
+    // Create the wellNumber and wellType for the installation
     const newWelLNumberAndWellType = await Well.create({
       organizationName,
       wellLocation,
@@ -404,7 +404,7 @@ export const addWellTypeAndNumber = async (req, res) => {
       data: newWelLNumberAndWellType,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({
       success: false,
       message:

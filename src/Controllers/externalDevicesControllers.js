@@ -23,6 +23,36 @@ export const externalDataCollect = async (req, res) => {
   }
 };
 
+//show all repeated nodeID and Node Data repeated
+// export const externalRepeatedDataShow = async (req, res) => {
+//   try {
+//     const { organizationName } = req.query;
+
+//     if (!organizationName) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Organization name is required",
+//       });
+//     }
+
+//     // Query the database directly with the organization name
+//     const newData = await ExternalDevice.find({
+//       "data.OrgID": organizationName,
+//     });
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Data retrieved successfully",
+//       data: newData,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Error retrieving data",
+//     });
+//   }
+// };
+
 // to get all data using external decice and show
 export const externalDataShow = async (req, res) => {
   try {
@@ -35,15 +65,25 @@ export const externalDataShow = async (req, res) => {
       });
     }
 
-    // Query the database directly with the organization name
-    const newData = await ExternalDevice.find({
-      "data.OrgID": organizationName,
-    });
+    // Step 1: Aggregate data to get unique NodeAdd
+    const uniqueNodeData = await ExternalDevice.aggregate([
+      { $match: { "data.OrgID": organizationName } },
+      { $sort: { createAt: -1 } },
+      {
+        $group: {
+          _id: "$data.NodeAdd",
+          latestEntry: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$latestEntry" },
+      },
+    ]);
 
     res.status(200).json({
       success: true,
-      message: "Data retrieved successfully",
-      data: newData,
+      message: "NodeID Retrieved successfully",
+      data: uniqueNodeData,
     });
   } catch (error) {
     res.status(500).json({
@@ -54,7 +94,7 @@ export const externalDataShow = async (req, res) => {
 };
 
 // to get all data using external decice and show with well number and nodeID
-export const externalAllDataWellAndNodeIDShow = async (req, res) => {
+export const getNodeAllDataByOrganization = async (req, res) => {
   try {
     const { organizationName } = req.query;
 
@@ -65,37 +105,64 @@ export const externalAllDataWellAndNodeIDShow = async (req, res) => {
       });
     }
 
-    // Find all wells for the specified organization
+    // Step 1: Find all wells for the specified organization
     const wells = await Well.find({ organizationName });
 
     if (!wells || wells.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No wells found for the specified organization",
+        message: `No wells found for the organization '${organizationName}'`,
       });
     }
 
-    // Retrieve all records in ExternalDevice for the given organization
-    const externalDevices = await ExternalDevice.find({
-      "data.OrgID": organizationName,
+    // Step 2: Retrieve node IDs associated with the organization's wells
+    const nodeIDs = wells.map((well) => well.nodeID).filter(Boolean);
+
+    // Step 3: Retrieve the latest ExternalDevice entry for each unique NodeAdd
+    const nodeDevices = await ExternalDevice.aggregate([
+      { $match: { "data.OrgID": organizationName } },
+      { $sort: { createAt: -1 } },
+      {
+        $group: {
+          _id: "$data.NodeAdd",
+          latestEntry: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$latestEntry" },
+      },
+    ]);
+
+    // Step 4: Organize the data based on well numbers and associated node data
+    const wellData = wells.map((well) => {
+      // Find the device data associated with the well's nodeID
+      const deviceData = nodeDevices.find(
+        (device) => device.data.NodeAdd === well.nodeID
+      );
+
+      if (!deviceData) {
+        console.log(
+          `No device data found for well ${well.wellNumber} with nodeID ${well.nodeID}`
+        );
+      }
+
+      return {
+        wellNumber: well.wellNumber,
+        wellDetails: well,
+        nodeData: deviceData || null,
+      };
     });
 
-
-    // Map NodeAdd values from the ExternalDevice data
-    const nodeIDs = externalDevices
-      .map((device) => device.data?.NodeAdd)
-      .filter(Boolean);
-
+    // Step 5: Respond with the organized well and node data
     res.status(200).json({
       success: true,
-      message: "Wells and Node IDs retrieved successfully",
-      wells,
-      nodeIDs,
+      message: "Node data retrieved successfully",
+      wellData,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error retrieving data",
+      message: error.message || "Error retrieving node data",
     });
   }
 };
@@ -159,5 +226,3 @@ export const externalDataWellAndNodeIDShow = async (req, res) => {
     });
   }
 };
-
-
