@@ -26,12 +26,24 @@ export const externalDataCollect = async (req, res) => {
 // to get all data using external decice and show
 export const externalDataShow = async (req, res) => {
   try {
-    const allData = await ExternalDevice.find();
+    const { organizationName } = req.query;
+
+    if (!organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name is required",
+      });
+    }
+
+    // Query the database directly with the organization name
+    const newData = await ExternalDevice.find({
+      "data.OrgID": organizationName,
+    });
 
     res.status(200).json({
       success: true,
-      message: "Data Show Successfully",
-      data: allData,
+      message: "Data retrieved successfully",
+      data: newData,
     });
   } catch (error) {
     res.status(500).json({
@@ -42,6 +54,53 @@ export const externalDataShow = async (req, res) => {
 };
 
 // to get all data using external decice and show with well number and nodeID
+export const externalAllDataWellAndNodeIDShow = async (req, res) => {
+  try {
+    const { organizationName } = req.query;
+
+    if (!organizationName) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Name is required",
+      });
+    }
+
+    // Find all wells for the specified organization
+    const wells = await Well.find({ organizationName });
+
+    if (!wells || wells.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No wells found for the specified organization",
+      });
+    }
+
+    // Retrieve all records in ExternalDevice for the given organization
+    const externalDevices = await ExternalDevice.find({
+      "data.OrgID": organizationName,
+    });
+
+
+    // Map NodeAdd values from the ExternalDevice data
+    const nodeIDs = externalDevices
+      .map((device) => device.data?.NodeAdd)
+      .filter(Boolean);
+
+    res.status(200).json({
+      success: true,
+      message: "Wells and Node IDs retrieved successfully",
+      wells,
+      nodeIDs,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error retrieving data",
+    });
+  }
+};
+
+// to get Single data using external decice and show with well number and nodeID
 export const externalDataWellAndNodeIDShow = async (req, res) => {
   try {
     const { organizationName, wellNumber } = req.query;
@@ -100,3 +159,5 @@ export const externalDataWellAndNodeIDShow = async (req, res) => {
     });
   }
 };
+
+
