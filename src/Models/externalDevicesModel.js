@@ -1,23 +1,6 @@
 import mongoose from "mongoose";
 
 const externalDeviceSchema = new mongoose.Schema({
-  // name: {
-  //   type: String,
-  // },
-  // data: {
-  //   type: String,
-  // },
-  // organizationName: {
-  //   type: String,
-  //   // required: true,
-  // },
-  // wellNumber: {
-  //   type: String,
-  //   unique: true,
-  // },
-  // nodeID: {
-  //   type: String,
-  // },
   data: { 
     type: Map, 
     of: String, 
