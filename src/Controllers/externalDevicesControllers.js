@@ -191,9 +191,11 @@ export const getSingleWellNodeDataByOrganization = async (req, res) => {
 
     // Step 2: Retrieve the latest ExternalDevice entry for the well's nodeID
     const nodeDevice = await ExternalDevice.aggregate([
-      { $match: { "data.OrgID": organizationName, "data.NodeAdd": well.nodeID } },
+      {
+        $match: { "data.OrgID": organizationName, "data.NodeAdd": well.nodeID },
+      },
       { $sort: { createAt: -1 } },
-      { $limit: 1 }, 
+      { $limit: 1 },
       {
         $replaceRoot: { newRoot: "$$ROOT" },
       },
@@ -222,3 +224,13 @@ export const getSingleWellNodeDataByOrganization = async (req, res) => {
   }
 };
 
+//To Get using Filter find well number and node data
+export const getFilterWellNodeData = async (req, res) => {
+  try {
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error retrieving well and node data",
+    });
+  }
+};
