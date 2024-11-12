@@ -224,13 +224,210 @@ export const getSingleWellNodeDataByOrganization = async (req, res) => {
   }
 };
 
-//To Get using Filter find well number and node data
+// Define the function to filter well node data
+//with well number 
+// export const getFilterWellNodeData = async (req, res) => {
+//   try {
+//     const { 
+//       organizationName, 
+//       wellLocation, 
+//       wellInstallation, 
+//       wellNumber, 
+//       parameter 
+//     } = req.query;
+
+//     // Validate required query parameters
+//     if (!organizationName || !wellLocation || !wellInstallation || !wellNumber || !parameter) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Organization Name, Well Location, Installation, Well Number, and Parameter are required.",
+//       });
+//     }
+
+//     // Step 1: Find the specific well based on the filters
+//     const wellFilter = {
+//       organizationName,
+//       wellLocation,
+//       wellInstallation,
+//       wellNumber,
+//     };
+
+//     const wells = await Well.find(wellFilter);
+
+//     if (!wells || wells.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "No wells found with the specified criteria.",
+//       });
+//     }
+
+//     // Step 2: Retrieve node IDs associated with the well
+//     const nodeIDs = wells.map((well) => well.nodeID).filter(Boolean);
+
+//     // Step 3: Retrieve the latest ExternalDevice entry for each unique NodeAdd
+//     const nodeDevices = await ExternalDevice.aggregate([
+//       { $match: { "data.OrgID": organizationName } },
+//       { $sort: { createdAt: -1 } },
+//       {
+//         $group: {
+//           _id: "$data.NodeAdd",
+//           latestEntry: { $first: "$$ROOT" },
+//         },
+//       },
+//       { $replaceRoot: { newRoot: "$latestEntry" } },
+//     ]);
+
+//     // Step 4: Filter node data based on the parameter
+//     let filteredNodeData;
+//     switch (parameter) {
+//       case "Battery":
+//         filteredNodeData = nodeDevices.filter(device => parseFloat(device.data.Bat) <= 21);
+//         break;
+//       case "Solar":
+//         filteredNodeData = nodeDevices.filter(device => parseFloat(device.data.Solar) < 15);
+//         break;
+//       case "Network Error":
+//         filteredNodeData = nodeDevices.filter(device => !device.data);
+//         break;
+//       case "Flowing":
+//         filteredNodeData = wells.filter(well => well.flowing === true)
+//           .map(well => nodeDevices.find(device => device.data.NodeAdd === well.nodeID));
+//         break;
+//       case "Not Flowing":
+//         filteredNodeData = wells.filter(well => well.flowing === false)
+//           .map(well => nodeDevices.find(device => device.data.NodeAdd === well.nodeID));
+//         break;
+//       case "All":
+//       default:
+//         filteredNodeData = nodeDevices;
+//         break;
+//     }
+
+//     // Step 5: Map wells to filtered node data
+//     const wellData = wells.map((well) => {
+//       const deviceData = filteredNodeData.find(device => device?.data?.NodeAdd === well.nodeID);
+//       return {
+//         wellNumber: well.wellNumber,
+//         wellDetails: well,
+//         nodeData: deviceData || null,
+//       };
+//     }).filter(entry => entry.nodeData);
+
+//     // Step 6: Respond with organized well and node data
+//     res.status(200).json({
+//       success: true,
+//       message: "Filtered node data retrieved successfully",
+//       wellData,
+//     });
+
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Error retrieving node data",
+//     });
+//   }
+// };
+
+//without well number to check
 export const getFilterWellNodeData = async (req, res) => {
   try {
+    const { 
+      organizationName, 
+      wellLocation, 
+      wellInstallation, 
+      parameter 
+    } = req.query;
+
+    // Validate required query parameters
+    if (!organizationName || !wellLocation || !wellInstallation || !parameter) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization Name, Well Location, Installation, and Parameter are required.",
+      });
+    }
+
+    // Step 1: Find wells based on organization, location, and installation
+    const wellFilter = {
+      organizationName,
+      wellLocation,
+      wellInstallation,
+    };
+
+    const wells = await Well.find(wellFilter);
+
+    if (!wells || wells.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No wells found with the specified criteria.",
+      });
+    }
+
+    // Step 2: Retrieve node IDs associated with the filtered wells
+    const nodeIDs = wells.map((well) => well.nodeID).filter(Boolean);
+
+    // Step 3: Retrieve the latest ExternalDevice entry for each unique NodeAdd
+    const nodeDevices = await ExternalDevice.aggregate([
+      { $match: { "data.OrgID": organizationName } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: "$data.NodeAdd",
+          latestEntry: { $first: "$$ROOT" },
+        },
+      },
+      { $replaceRoot: { newRoot: "$latestEntry" } },
+    ]);
+
+    // Step 4: Apply parameter-based filtering on the node data
+    let filteredNodeData;
+    switch (parameter) {
+      case "Battery":
+        filteredNodeData = nodeDevices.filter(device => parseFloat(device.data.Bat) < 20);
+        break;
+      case "Solar":
+        filteredNodeData = nodeDevices.filter(device => parseFloat(device.data.Solar) < 15);
+        break;
+      case "Network Error":
+        filteredNodeData = nodeDevices.filter(device => !device.data);
+        break;
+      case "Flowing":
+        filteredNodeData = wells.filter(well => well.flowing === true)
+          .map(well => nodeDevices.find(device => device.data.NodeAdd === well.nodeID));
+        break;
+      case "Not Flowing":
+        filteredNodeData = wells.filter(well => well.flowing === false)
+          .map(well => nodeDevices.find(device => device.data.NodeAdd === well.nodeID));
+        break;
+      case "All":
+      default:
+        filteredNodeData = nodeDevices;
+        break;
+    }
+
+    // Step 5: Map filtered node data to the wells
+    const wellData = wells.map((well) => {
+      const deviceData = filteredNodeData.find(device => device?.data?.NodeAdd === well.nodeID);
+      return {
+        wellNumber: well.wellNumber,
+        wellDetails: well,
+        nodeData: deviceData || null,
+      };
+    }).filter(entry => entry.nodeData); // Remove entries without matching node data
+
+    // Step 6: Respond with the organized well and node data
+    res.status(200).json({
+      success: true,
+      message: "Filtered node data retrieved successfully",
+      wellData,
+    });
+
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error retrieving well and node data",
+      message: error.message || "Error retrieving node data",
     });
   }
 };
+
+
+
