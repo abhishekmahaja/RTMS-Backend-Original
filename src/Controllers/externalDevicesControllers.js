@@ -168,61 +168,57 @@ export const getNodeAllDataByOrganization = async (req, res) => {
 };
 
 // to get Single data using external decice and show with well number and nodeID
-export const externalDataWellAndNodeIDShow = async (req, res) => {
+export const getSingleWellNodeDataByOrganization = async (req, res) => {
   try {
     const { organizationName, wellNumber } = req.query;
 
-    if (!organizationName) {
+    if (!organizationName || !wellNumber) {
       return res.status(400).json({
         success: false,
-        message: "Organization Name is required",
+        message: "Organization Name and Well Number are required",
       });
     }
 
-    // Find the organization by name
-    const organizationExists = await Well.findOne({ organizationName });
+    // Step 1: Find the specific well by organization and well number
+    const well = await Well.findOne({ organizationName, wellNumber });
 
-    if (!organizationExists) {
+    if (!well) {
       return res.status(404).json({
         success: false,
-        message: "Organization not found",
+        message: `No well found with well number '${wellNumber}' for the organization '${organizationName}'`,
       });
     }
 
-    // Find the well by wellNumber
-    const wellExists = await Well.findOne({ wellNumber });
+    // Step 2: Retrieve the latest ExternalDevice entry for the well's nodeID
+    const nodeDevice = await ExternalDevice.aggregate([
+      { $match: { "data.OrgID": organizationName, "data.NodeAdd": well.nodeID } },
+      { $sort: { createAt: -1 } },
+      { $limit: 1 }, 
+      {
+        $replaceRoot: { newRoot: "$$ROOT" },
+      },
+    ]);
 
-    if (!wellExists) {
-      return res.status(404).json({
-        success: false,
-        message: `Well with number '${wellNumber}' not found.`,
-      });
-    }
+    const deviceData = nodeDevice.length > 0 ? nodeDevice[0] : null;
 
-    // Find the node by data (Node ID)
-    const nodeExists = await ExternalDevice.findOne({ data });
+    // Step 3: Organize the well data and associated node data
+    const wellData = {
+      wellNumber: well.wellNumber,
+      wellDetails: well,
+      nodeData: deviceData || null,
+    };
 
-    if (!nodeExists) {
-      return res.status(404).json({
-        success: false,
-        message: `Node ID '${data}' not found.`,
-      });
-    }
-
-    //latest data in ExternalDevice sorted by time (assuming you have a `timestamp` field)
-    const latestData = await ExternalDevice.find({ wellNumber, data })
-      .sort({ timestamp: -1 }) // Sort by timestamp in descending order
-      .limit(1); // Get the latest entry
-
+    // Step 4: Respond with the well and node data
     res.status(200).json({
       success: true,
-      message: `Data Show Successfully With Connected Node ID '${data}' with Well Number '${wellNumber}'`,
-      data: latestData,
+      message: "Well data with node information retrieved successfully",
+      wellData,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || "Error retrieving data",
+      message: error.message || "Error retrieving well and node data",
     });
   }
 };
+
