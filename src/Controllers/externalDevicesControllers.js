@@ -1,3 +1,4 @@
+import { broadcast } from "../../index.js";
 import ExternalDevice from "../Models/externalDevicesModel.js";
 import Well from "../Models/wellMasterModel.js";
 
@@ -9,6 +10,13 @@ export const externalDataCollect = async (req, res) => {
     });
 
     await newData.save();
+
+    // Broadcast the saved data to all WebSocket clients
+    broadcast({
+      status: true,
+      message: "New data received",
+      data: newData,
+    });
 
     res.status(201).json({
       status: true,
@@ -225,15 +233,15 @@ export const getSingleWellNodeDataByOrganization = async (req, res) => {
 };
 
 // Define the function to filter well node data
-//with well number 
+//with well number
 // export const getFilterWellNodeData = async (req, res) => {
 //   try {
-//     const { 
-//       organizationName, 
-//       wellLocation, 
-//       wellInstallation, 
-//       wellNumber, 
-//       parameter 
+//     const {
+//       organizationName,
+//       wellLocation,
+//       wellInstallation,
+//       wellNumber,
+//       parameter
 //     } = req.query;
 
 //     // Validate required query parameters
@@ -331,18 +339,15 @@ export const getSingleWellNodeDataByOrganization = async (req, res) => {
 //without well number to check
 export const getFilterWellNodeData = async (req, res) => {
   try {
-    const { 
-      organizationName, 
-      wellLocation, 
-      wellInstallation, 
-      parameter 
-    } = req.query;
+    const { organizationName, wellLocation, wellInstallation, parameter } =
+      req.query;
 
     // Validate required query parameters
     if (!organizationName || !wellLocation || !wellInstallation || !parameter) {
       return res.status(400).json({
         success: false,
-        message: "Organization Name, Well Location, Installation, and Parameter are required.",
+        message:
+          "Organization Name, Well Location, Installation, and Parameter are required.",
       });
     }
 
@@ -382,21 +387,31 @@ export const getFilterWellNodeData = async (req, res) => {
     let filteredNodeData;
     switch (parameter) {
       case "Battery":
-        filteredNodeData = nodeDevices.filter(device => parseFloat(device.data.Bat) < 20);
+        filteredNodeData = nodeDevices.filter(
+          (device) => parseFloat(device.data.Bat) < 20
+        );
         break;
       case "Solar":
-        filteredNodeData = nodeDevices.filter(device => parseFloat(device.data.Solar) < 15);
+        filteredNodeData = nodeDevices.filter(
+          (device) => parseFloat(device.data.Solar) < 15
+        );
         break;
       case "Network Error":
-        filteredNodeData = nodeDevices.filter(device => !device.data);
+        filteredNodeData = nodeDevices.filter((device) => !device.data);
         break;
       case "Flowing":
-        filteredNodeData = wells.filter(well => well.flowing === true)
-          .map(well => nodeDevices.find(device => device.data.NodeAdd === well.nodeID));
+        filteredNodeData = wells
+          .filter((well) => well.flowing === true)
+          .map((well) =>
+            nodeDevices.find((device) => device.data.NodeAdd === well.nodeID)
+          );
         break;
       case "Not Flowing":
-        filteredNodeData = wells.filter(well => well.flowing === false)
-          .map(well => nodeDevices.find(device => device.data.NodeAdd === well.nodeID));
+        filteredNodeData = wells
+          .filter((well) => well.flowing === false)
+          .map((well) =>
+            nodeDevices.find((device) => device.data.NodeAdd === well.nodeID)
+          );
         break;
       case "All":
       default:
@@ -405,14 +420,18 @@ export const getFilterWellNodeData = async (req, res) => {
     }
 
     // Step 5: Map filtered node data to the wells
-    const wellData = wells.map((well) => {
-      const deviceData = filteredNodeData.find(device => device?.data?.NodeAdd === well.nodeID);
-      return {
-        wellNumber: well.wellNumber,
-        wellDetails: well,
-        nodeData: deviceData || null,
-      };
-    }).filter(entry => entry.nodeData); // Remove entries without matching node data
+    const wellData = wells
+      .map((well) => {
+        const deviceData = filteredNodeData.find(
+          (device) => device?.data?.NodeAdd === well.nodeID
+        );
+        return {
+          wellNumber: well.wellNumber,
+          wellDetails: well,
+          nodeData: deviceData || null,
+        };
+      })
+      .filter((entry) => entry.nodeData); // Remove entries without matching node data
 
     // Step 6: Respond with the organized well and node data
     res.status(200).json({
@@ -420,7 +439,6 @@ export const getFilterWellNodeData = async (req, res) => {
       message: "Filtered node data retrieved successfully",
       wellData,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -428,6 +446,3 @@ export const getFilterWellNodeData = async (req, res) => {
     });
   }
 };
-
-
-

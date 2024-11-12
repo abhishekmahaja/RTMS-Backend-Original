@@ -9,6 +9,7 @@ import fileUpload from "express-fileupload";
 import deviceRouter from "./src/Routes/deviceManagerRoutes.js";
 import externaldeviceRouter from "./src/Routes/externalDeviceRoutes.js";
 import organizationRouter from "./src/Routes/organizationsRoutes.js";
+import { WebSocketServer } from "ws";
 
 dotenv.config();
 
@@ -32,7 +33,36 @@ app.use("/api/v1/devicemanager", deviceRouter);
 app.use("/api/v1/externaldevice", externaldeviceRouter);
 app.use("/api/v1/organization", organizationRouter);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   Mongodb();
   console.log(`Server is running on port ${PORT}`);
 });
+
+// WebSocket server setup
+const wss = new WebSocketServer({ server });
+
+// Broadcast function to send messages to all connected clients
+const broadcast = (data) => {
+  wss.clients.forEach((client) => {
+    if (client.readyState === client.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+};
+
+// Event handling for new WebSocket connections
+wss.on("connection", (ws) => {
+  console.log(`WebSocket connecteding on port ${PORT}`);
+
+  // Listen for messages from clients
+  ws.on("message", (data) => {
+    console.log("Received data from client: %s", data);
+
+    // Here, you can process the received data if necessary
+    ws.send(JSON.stringify({ message: "Thank you for sending Well data!" }));
+  });
+
+  ws.on("close", () => console.log("WebSocket connection closed"));
+});
+
+export { broadcast };
