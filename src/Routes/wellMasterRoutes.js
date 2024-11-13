@@ -34,7 +34,7 @@ wellRouter.get("/get-well-location", getWellLocation);
 wellRouter.put("/update-well-location", updateWellLocation);
 wellRouter.delete("/delete-well-location", deleteWellLocation);
 wellRouter.post("/add-installation-to-location", addInstallationToLocation);
-wellRouter.get("/get-installations-by-location", getInstallationsByLocation);
+wellRouter.post("/get-installations-by-location", getInstallationsByLocation);
 wellRouter.post("/add-well-type-and-number", addWellTypeAndNumber);
 wellRouter.get("/get-all-well-types-and-number", getAllWellTypesAndNumber);
 wellRouter.get("/get-one-well-by-well-number", getOneWellByWellNumber);

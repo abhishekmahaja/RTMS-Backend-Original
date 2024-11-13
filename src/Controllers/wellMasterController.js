@@ -294,7 +294,7 @@ export const addInstallationToLocation = async (req, res) => {
 //GET ALL Installation to the Existing Location
 export const getInstallationsByLocation = async (req, res) => {
   try {
-    const { organizationName, wellLocation } = req.query;
+    const { organizationName, wellLocation } = req.body;
 
     // Validate required queries
     if (!organizationName || !wellLocation) {
