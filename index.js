@@ -50,6 +50,10 @@ const broadcast = (data) => {
   });
 };
 
+// wss.on("headers", (headers, request) => {
+//   console.log("Headers received during handshake:", headers);
+// });
+
 // Event handling for new WebSocket connections
 wss.on("connection", (ws) => {
   console.log(`WebSocket connecteding on port ${PORT}`);
@@ -64,5 +68,9 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => console.log("WebSocket connection closed"));
 });
+
+// wss.on("connection", (ws, req) => {
+//   console.log(`New connection from: ${req.socket.remoteAddress}`);
+// });
 
 export { broadcast };
